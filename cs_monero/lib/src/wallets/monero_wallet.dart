@@ -105,38 +105,45 @@ class MoneroWallet extends Wallet {
     String language = "English",
     required MoneroSeedType seedType,
     int networkType = 0,
+    String seedOffset = "",
   }) async {
-    final _walletManagerPointerAddress = _walletManagerPointer.address;
+    final walletManagerPointerAddress = _walletManagerPointer.address;
     final Pointer<Void> walletPointer;
     switch (seedType) {
       case MoneroSeedType.sixteen:
-        final seed = await Isolate.run(() {
-          return xmr_ffi.createPolyseed(language: language);
-        });
-        walletPointer = await Isolate.run(() {
-          return xmr_wm_ffi.createWalletFromPolyseed(
-            Pointer.fromAddress(_walletManagerPointerAddress),
-            path: path,
-            password: password,
-            mnemonic: seed,
-            seedOffset: "",
-            newWallet: true,
-            restoreHeight: 0, // ignored by core underlying code
-            kdfRounds: 1,
-          );
-        });
+        final seed = xmr_ffi.createPolyseed(language: language);
+        walletPointer = Pointer<Void>.fromAddress(
+          await Isolate.run(
+            () => xmr_wm_ffi
+                .createWalletFromPolyseed(
+                  Pointer.fromAddress(walletManagerPointerAddress),
+                  path: path,
+                  password: password,
+                  mnemonic: seed,
+                  seedOffset: seedOffset,
+                  newWallet: true,
+                  restoreHeight: 0, // ignored by core underlying code
+                  kdfRounds: 1,
+                )
+                .address,
+          ),
+        );
         break;
 
       case MoneroSeedType.twentyFive:
-        walletPointer = await Isolate.run(() {
-          return xmr_wm_ffi.createWallet(
-            Pointer.fromAddress(_walletManagerPointerAddress),
-            path: path,
-            password: password,
-            language: language,
-            networkType: networkType,
-          );
-        });
+        walletPointer = Pointer<Void>.fromAddress(
+          await Isolate.run(
+            () => xmr_wm_ffi
+                .createWallet(
+                  Pointer.fromAddress(walletManagerPointerAddress),
+                  path: path,
+                  password: password,
+                  language: language,
+                  networkType: networkType,
+                )
+                .address,
+          ),
+        );
         break;
     }
 
@@ -188,36 +195,45 @@ class MoneroWallet extends Wallet {
     required String seed,
     int networkType = 0,
     int restoreHeight = 0,
+    String seedOffset = "",
   }) async {
-    final _walletManagerPointerAddress = _walletManagerPointer.address;
+    final walletManagerPointerAddress = _walletManagerPointer.address;
     final Pointer<Void> walletPointer;
     final seedLength = seed.split(' ').length;
     if (seedLength == 25) {
-      walletPointer = await Isolate.run(() {
-        return xmr_wm_ffi.recoveryWallet(
-          Pointer.fromAddress(_walletManagerPointerAddress),
-          path: path,
-          password: password,
-          mnemonic: seed,
-          restoreHeight: restoreHeight,
-          seedOffset: "",
-          networkType: networkType,
-        );
-      });
+      walletPointer = Pointer<Void>.fromAddress(
+        await Isolate.run(
+          () => xmr_wm_ffi
+              .recoveryWallet(
+                Pointer.fromAddress(walletManagerPointerAddress),
+                path: path,
+                password: password,
+                mnemonic: seed,
+                restoreHeight: restoreHeight,
+                seedOffset: seedOffset,
+                networkType: networkType,
+              )
+              .address,
+        ),
+      );
     } else if (seedLength == 16) {
-      walletPointer = await Isolate.run(() {
-        return xmr_wm_ffi.createWalletFromPolyseed(
-          Pointer.fromAddress(_walletManagerPointerAddress),
-          path: path,
-          password: password,
-          mnemonic: seed,
-          seedOffset: "",
-          newWallet: false,
-          restoreHeight: 0, // ignored by core underlying code
-          kdfRounds: 1,
-          networkType: networkType,
-        );
-      });
+      walletPointer = Pointer<Void>.fromAddress(
+        await Isolate.run(
+          () => xmr_wm_ffi
+              .createWalletFromPolyseed(
+                Pointer.fromAddress(walletManagerPointerAddress),
+                path: path,
+                password: password,
+                mnemonic: seed,
+                seedOffset: seedOffset,
+                newWallet: false,
+                restoreHeight: 0, // ignored by core underlying code
+                kdfRounds: 1,
+                networkType: networkType,
+              )
+              .address,
+        ),
+      );
     } else {
       throw Exception("Bad seed length: $seedLength");
     }
@@ -347,20 +363,24 @@ class MoneroWallet extends Wallet {
     int networkType = 0,
     int restoreHeight = 0,
   }) async {
-    final _walletManagerPointerAddress = _walletManagerPointer.address;
-    final walletPointer = await Isolate.run(() {
-      return xmr_wm_ffi.createWalletFromKeys(
-        Pointer.fromAddress(_walletManagerPointerAddress),
-        path: path,
-        password: password,
-        language: language,
-        addressString: address,
-        viewKeyString: viewKey,
-        spendKeyString: spendKey,
-        networkType: networkType,
-        restoreHeight: restoreHeight,
-      );
-    });
+    final walletManagerPointerAddress = _walletManagerPointer.address;
+    final walletPointer = Pointer<Void>.fromAddress(
+      await Isolate.run(
+        () => xmr_wm_ffi
+            .createWalletFromKeys(
+              Pointer.fromAddress(walletManagerPointerAddress),
+              path: path,
+              password: password,
+              language: language,
+              addressString: address,
+              viewKeyString: viewKey,
+              spendKeyString: spendKey,
+              networkType: networkType,
+              restoreHeight: restoreHeight,
+            )
+            .address,
+      ),
+    );
 
     xmr_ffi.checkWalletStatus(walletPointer);
 
@@ -415,19 +435,23 @@ class MoneroWallet extends Wallet {
     int networkType = 0,
     int restoreHeight = 0,
   }) async {
-    final address = _walletManagerPointer.address;
-    final walletPointer = await Isolate.run(() {
-      return xmr_wm_ffi.createDeterministicWalletFromSpendKey(
-        Pointer.fromAddress(address),
-        path: path,
-        password: password,
-        language: language,
-        spendKeyString: spendKey,
-        newWallet: true,
-        restoreHeight: restoreHeight,
-        networkType: networkType,
-      );
-    });
+    final walletManagerPointerAddress = _walletManagerPointer.address;
+    final walletPointer = Pointer<Void>.fromAddress(
+      await Isolate.run(
+        () => xmr_wm_ffi
+            .createDeterministicWalletFromSpendKey(
+              Pointer.fromAddress(walletManagerPointerAddress),
+              path: path,
+              password: password,
+              language: language,
+              spendKeyString: spendKey,
+              newWallet: true,
+              restoreHeight: restoreHeight,
+              networkType: networkType,
+            )
+            .address,
+      ),
+    );
 
     xmr_ffi.checkWalletStatus(walletPointer);
 
@@ -466,15 +490,19 @@ class MoneroWallet extends Wallet {
     required String password,
     int networkType = 0,
   }) async {
-    final address = _walletManagerPointer.address;
-    final walletPointer = await Isolate.run(() {
-      return xmr_wm_ffi.openWallet(
-        Pointer.fromAddress(address),
-        path: path,
-        password: password,
-        networkType: networkType,
-      );
-    });
+    final walletManagerPointerAddress = _walletManagerPointer.address;
+    final walletPointer = Pointer<Void>.fromAddress(
+      await Isolate.run(
+        () => xmr_wm_ffi
+            .openWallet(
+              Pointer.fromAddress(walletManagerPointerAddress),
+              path: path,
+              password: password,
+              networkType: networkType,
+            )
+            .address,
+      ),
+    );
 
     xmr_ffi.checkWalletStatus(walletPointer);
 
@@ -1002,7 +1030,27 @@ class MoneroWallet extends Wallet {
   }
 
   @override
-  Future<List<String>> getAllTxids({bool refresh = false}) async {
+  Future<List<Transaction>> getTxs({
+    required Set<String> txids,
+    bool refresh = false,
+  }) async {
+    if (txids.isEmpty) {
+      return [];
+    }
+
+    if (refresh) {
+      await refreshTransactions();
+    }
+
+    final List<Transaction> result = [];
+    for (final txid in txids) {
+      result.add(await getTx(txid, refresh: false));
+    }
+    return result;
+  }
+
+  @override
+  Future<List<Transaction>> getAllTxs({bool refresh = false}) async {
     if (refresh) {
       await refreshTransactions();
     }
@@ -1023,6 +1071,25 @@ class MoneroWallet extends Wallet {
         ),
       );
     });
+  }
+
+  @override
+  Future<List<String>> getAllTxids({bool refresh = false}) async {
+    if (refresh) {
+      await refreshTransactions();
+    }
+
+    final size = transactionCount();
+
+    return List.generate(
+      size,
+      (index) => xmr_ffi.getTransactionInfoHash(
+        xmr_ffi.getTransactionInfoPointer(
+          _transactionHistoryPointer!,
+          index: index,
+        ),
+      ),
+    );
   }
 
   @override

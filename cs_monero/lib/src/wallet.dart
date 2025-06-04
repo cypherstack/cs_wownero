@@ -292,7 +292,7 @@ abstract class Wallet {
   Future<String> getPath();
 
   /// Returns the seed phrase (mnemonic) of the wallet.
-  Future<String> getSeed();
+  Future<String> getSeed({String seedOffset = ""});
 
   /// Returns the language of the seed phrase (mnemonic).
   Future<String> getSeedLanguage();
