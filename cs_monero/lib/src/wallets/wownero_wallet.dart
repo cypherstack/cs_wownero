@@ -798,8 +798,10 @@ class WowneroWallet extends Wallet {
   }
 
   @override
-  Future<Address> getAddress(
-      {int accountIndex = 0, int addressIndex = 0}) async {
+  Future<Address> getAddress({
+    int accountIndex = 0,
+    int addressIndex = 0,
+  }) async {
     final walletPointerAddress = _getWalletPointer().address;
 
     return await Isolate.run(() {
@@ -831,7 +833,8 @@ class WowneroWallet extends Wallet {
     final walletPointerAddress = _getWalletPointer().address;
     return await Isolate.run(() {
       return wow_ffi.getWalletRefreshFromBlockHeight(
-          Pointer.fromAddress(walletPointerAddress));
+        Pointer.fromAddress(walletPointerAddress),
+      );
     });
   }
 
@@ -847,8 +850,9 @@ class WowneroWallet extends Wallet {
   }
 
   @override
-  Future<void> startSyncing(
-      {Duration interval = const Duration(seconds: 10)}) async {
+  Future<void> startSyncing({
+    Duration interval = const Duration(seconds: 10),
+  }) async {
     final walletPointerAddress = _getWalletPointer().address;
     await Isolate.run(() {
       // 10 seconds seems to be the default in monero core
@@ -1000,18 +1004,21 @@ class WowneroWallet extends Wallet {
 
     final address = _transactionHistoryPointer!.address;
 
-    return _transactionFrom(
-      await Isolate.run(
-        () => wow_ffi.getTransactionInfoPointerByTxid(
+    return await Isolate.run(() {
+      return _transactionFrom(
+        wow_ffi.getTransactionInfoPointerByTxid(
           Pointer.fromAddress(address),
           txid: txid,
         ),
-      ),
-    );
+      );
+    });
   }
 
   @override
-  Future<List<Transaction>> getTxs({bool refresh = false}) async {
+  Future<List<Transaction>> getTxs({
+    required Set<String> txids,
+    bool refresh = false,
+  }) async {
     if (refresh) {
       await refreshTransactions();
     }
@@ -1031,6 +1038,59 @@ class WowneroWallet extends Wallet {
     }
 
     return result;
+  }
+
+  @override
+  Future<List<Transaction>> getAllTxs({bool refresh = false}) async {
+    if (refresh) {
+      await refreshTransactions();
+    }
+
+    final address = _transactionHistoryPointer!.address;
+
+    final size = await transactionCount();
+    return Isolate.run(() async {
+      final ptr = Pointer.fromAddress(address);
+
+      final List<Transaction> result = [];
+
+      for (int i = 0; i < size; i++) {
+        result.add(
+          await _transactionFrom(
+            wow_ffi.getTransactionInfoPointer(
+              ptr.cast(),
+              index: i,
+            ),
+          ),
+        );
+      }
+
+      return result;
+    });
+  }
+
+  @override
+  Future<List<String>> getAllTxids({bool refresh = false}) async {
+    if (refresh) {
+      await refreshTransactions();
+    }
+
+    final address = _transactionHistoryPointer!.address;
+    final size = await transactionCount();
+
+    return Isolate.run(() {
+      final ptr = Pointer.fromAddress(address);
+
+      return List.generate(
+        size,
+        (index) => wow_ffi.getTransactionInfoHash(
+          wow_ffi.getTransactionInfoPointer(
+            ptr.cast(),
+            index: index,
+          ),
+        ),
+      );
+    });
   }
 
   @override
@@ -1120,16 +1180,21 @@ class WowneroWallet extends Wallet {
       throw Exception("Attempted freeze of empty keyImage.");
     }
 
-    final count = wow_ffi.getAllCoinsSize(_coinsPointer!);
-    for (int i = 0; i < count; i++) {
-      if (keyImage ==
-          wow_ffi.getKeyImageForCoinsInfo(
-            wow_ffi.getCoinInfoPointer(_coinsPointer!, i),
-          )) {
-        wow_ffi.freezeCoin(_coinsPointer!, index: i);
-        return;
+    final address = _coinsPointer!.address;
+
+    await Isolate.run(() {
+      final ptr = Pointer.fromAddress(address);
+      final count = wow_ffi.getAllCoinsSize(ptr.cast());
+      for (int i = 0; i < count; i++) {
+        if (keyImage ==
+            wow_ffi.getKeyImageForCoinsInfo(
+              wow_ffi.getCoinInfoPointer(ptr.cast(), i),
+            )) {
+          wow_ffi.freezeCoin(ptr.cast(), index: i);
+          return;
+        }
       }
-    }
+    });
 
     throw Exception(
       "Can't freeze utxo for the gen keyImage if it cannot be found. *points at temple*",
@@ -1142,16 +1207,21 @@ class WowneroWallet extends Wallet {
       throw Exception("Attempted thaw of empty keyImage.");
     }
 
-    final count = wow_ffi.getAllCoinsSize(_coinsPointer!);
-    for (int i = 0; i < count; i++) {
-      if (keyImage ==
-          wow_ffi.getKeyImageForCoinsInfo(
-            wow_ffi.getCoinInfoPointer(_coinsPointer!, i),
-          )) {
-        wow_ffi.thawCoin(_coinsPointer!, index: i);
-        return;
+    final address = _coinsPointer!.address;
+
+    await Isolate.run(() {
+      final ptr = Pointer.fromAddress(address);
+      final count = wow_ffi.getAllCoinsSize(ptr.cast());
+      for (int i = 0; i < count; i++) {
+        if (keyImage ==
+            wow_ffi.getKeyImageForCoinsInfo(
+              wow_ffi.getCoinInfoPointer(ptr.cast(), i),
+            )) {
+          wow_ffi.thawCoin(ptr.cast(), index: i);
+          return;
+        }
       }
-    }
+    });
 
     throw Exception(
       "Can't thaw utxo for the gen keyImage if it cannot be found. *points at temple*",

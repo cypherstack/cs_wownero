@@ -946,37 +946,83 @@ class MoneroWallet extends Wallet {
 
     final address = _transactionHistoryPointer!.address;
 
-    return _transactionFrom(
-      await Isolate.run(
-        () => xmr_ffi.getTransactionInfoPointerByTxid(
+    return await Isolate.run(() {
+      return _transactionFrom(
+        xmr_ffi.getTransactionInfoPointerByTxid(
           Pointer.fromAddress(address),
           txid: txid,
         ),
-      ),
-    );
+      );
+    });
   }
 
   @override
-  Future<List<Transaction>> getTxs({bool refresh = false}) async {
+  Future<List<Transaction>> getTxs({
+    required Set<String> txids,
+    bool refresh = false,
+  }) async {
+    if (refresh) {
+      await refreshTransactions();
+    }
+
+    final List<Transaction> result = [];
+    for (final txid in txids) {
+      result.add(await getTx(txid, refresh: false));
+    }
+    return result;
+  }
+
+  @override
+  Future<List<Transaction>> getAllTxs({bool refresh = false}) async {
     if (refresh) {
       await refreshTransactions();
     }
 
     final size = await transactionCount();
     final address = _transactionHistoryPointer!.address;
-    final List<Transaction> result = [];
-    for (int i = 0; i < size; i++) {
-      result.add(
-        await _transactionFrom(
+
+    return Isolate.run(() async {
+      final ptr = Pointer.fromAddress(address);
+
+      final List<Transaction> result = [];
+
+      for (int i = 0; i < size; i++) {
+        result.add(
+          await _transactionFrom(
+            xmr_ffi.getTransactionInfoPointer(
+              ptr.cast(),
+              index: i,
+            ),
+          ),
+        );
+      }
+
+      return result;
+    });
+  }
+
+  @override
+  Future<List<String>> getAllTxids({bool refresh = false}) async {
+    if (refresh) {
+      await refreshTransactions();
+    }
+
+    final address = _transactionHistoryPointer!.address;
+    final size = await transactionCount();
+
+    return Isolate.run(() {
+      final ptr = Pointer.fromAddress(address);
+
+      return List.generate(
+        size,
+        (index) => xmr_ffi.getTransactionInfoHash(
           xmr_ffi.getTransactionInfoPointer(
-            Pointer.fromAddress(address),
-            index: i,
+            ptr.cast(),
+            index: index,
           ),
         ),
       );
-    }
-
-    return result;
+    });
   }
 
   @override
@@ -1066,16 +1112,21 @@ class MoneroWallet extends Wallet {
       throw Exception("Attempted freeze of empty keyImage.");
     }
 
-    final count = xmr_ffi.getAllCoinsSize(_coinsPointer!);
-    for (int i = 0; i < count; i++) {
-      if (keyImage ==
-          xmr_ffi.getKeyImageForCoinsInfo(
-            xmr_ffi.getCoinInfoPointer(_coinsPointer!, i),
-          )) {
-        xmr_ffi.freezeCoin(_coinsPointer!, index: i);
-        return;
+    final address = _coinsPointer!.address;
+
+    await Isolate.run(() {
+      final ptr = Pointer.fromAddress(address);
+      final count = xmr_ffi.getAllCoinsSize(ptr.cast());
+      for (int i = 0; i < count; i++) {
+        if (keyImage ==
+            xmr_ffi.getKeyImageForCoinsInfo(
+              xmr_ffi.getCoinInfoPointer(ptr.cast(), i),
+            )) {
+          xmr_ffi.freezeCoin(ptr.cast(), index: i);
+          return;
+        }
       }
-    }
+    });
 
     throw Exception(
       "Can't freeze utxo for the gen keyImage if it cannot be found. *points at temple*",
@@ -1088,16 +1139,21 @@ class MoneroWallet extends Wallet {
       throw Exception("Attempted thaw of empty keyImage.");
     }
 
-    final count = xmr_ffi.getAllCoinsSize(_coinsPointer!);
-    for (int i = 0; i < count; i++) {
-      if (keyImage ==
-          xmr_ffi.getKeyImageForCoinsInfo(
-            xmr_ffi.getCoinInfoPointer(_coinsPointer!, i),
-          )) {
-        xmr_ffi.thawCoin(_coinsPointer!, index: i);
-        return;
+    final address = _coinsPointer!.address;
+
+    await Isolate.run(() {
+      final ptr = Pointer.fromAddress(address);
+      final count = xmr_ffi.getAllCoinsSize(ptr.cast());
+      for (int i = 0; i < count; i++) {
+        if (keyImage ==
+            xmr_ffi.getKeyImageForCoinsInfo(
+              xmr_ffi.getCoinInfoPointer(ptr.cast(), i),
+            )) {
+          xmr_ffi.thawCoin(ptr.cast(), index: i);
+          return;
+        }
       }
-    }
+    });
 
     throw Exception(
       "Can't thaw utxo for the gen keyImage if it cannot be found. *points at temple*",
