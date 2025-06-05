@@ -71,4 +71,43 @@ class Transaction {
 
   /// Flag indicating whether the transaction is pending (i.e., not yet confirmed).
   bool get isPending => confirmations < minConfirms.value;
+
+  Map<String, dynamic> toMap() {
+    return {
+      'displayLabel': displayLabel,
+      'description': description,
+      'fee': fee.toString(), // BigInt as string
+      'confirmations': confirmations,
+      'blockHeight': blockHeight,
+      'accountIndex': accountIndex,
+      'addressIndexes': addressIndexes.toList(), // Set<int> to List<int>
+      'paymentId': paymentId,
+      'amount': amount.toString(), // BigInt as string
+      'isSpend': isSpend,
+      'hash': hash,
+      'key': key,
+      'timeStamp': timeStamp.toIso8601String(), // DateTime as ISO string
+      'minConfirms': minConfirms.value,
+    };
+  }
+
+  static Transaction fromMap(Map<String, dynamic> map) {
+    return Transaction(
+      displayLabel: map['displayLabel'] as String,
+      description: map['description'] as String,
+      fee: BigInt.parse(map['fee'] as String),
+      confirmations: map['confirmations'] as int,
+      blockHeight: map['blockHeight'] as int,
+      accountIndex: map['accountIndex'] as int,
+      addressIndexes: Set<int>.from(map['addressIndexes'] as List),
+      paymentId: map['paymentId'] as String,
+      amount: BigInt.parse(map['amount'] as String),
+      isSpend: map['isSpend'] as bool,
+      hash: map['hash'] as String,
+      key: map['key'] as String,
+      timeStamp: DateTime.parse(map['timeStamp'] as String),
+      minConfirms: MinConfirms.values
+          .firstWhere((e) => e.value == map['minConfirms'] as int),
+    );
+  }
 }

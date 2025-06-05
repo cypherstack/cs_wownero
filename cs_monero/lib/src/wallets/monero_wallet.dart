@@ -43,24 +43,40 @@ class MoneroWallet extends Wallet {
   // private helpers
 
   Future<Transaction> _transactionFrom(Pointer<Void> infoPointer) async {
-    return Transaction(
-      displayLabel: xmr_ffi.getTransactionInfoLabel(infoPointer),
-      description: xmr_ffi.getTransactionInfoDescription(infoPointer),
-      fee: BigInt.from(xmr_ffi.getTransactionInfoFee(infoPointer)),
-      confirmations: xmr_ffi.getTransactionInfoConfirmations(infoPointer),
-      blockHeight: xmr_ffi.getTransactionInfoBlockHeight(infoPointer),
-      accountIndex: xmr_ffi.getTransactionInfoAccount(infoPointer),
-      addressIndexes: xmr_ffi.getTransactionSubaddressIndexes(infoPointer),
-      paymentId: xmr_ffi.getTransactionInfoPaymentId(infoPointer),
-      amount: BigInt.from(xmr_ffi.getTransactionInfoAmount(infoPointer)),
-      isSpend: xmr_ffi.getTransactionInfoIsSpend(infoPointer),
-      hash: xmr_ffi.getTransactionInfoHash(infoPointer),
-      key: await getTxKey(xmr_ffi.getTransactionInfoHash(infoPointer)),
-      timeStamp: DateTime.fromMillisecondsSinceEpoch(
-        xmr_ffi.getTransactionInfoTimestamp(infoPointer) * 1000,
-      ),
-      minConfirms: MinConfirms.monero,
-    );
+    final address = infoPointer.address;
+    final walletPtrAddress = _getWalletPointer().address;
+
+    final txData = await Isolate.run(() {
+      final infoPointer = Pointer<Void>.fromAddress(address);
+
+      final txid = xmr_ffi.getTransactionInfoHash(infoPointer);
+
+      final key = xmr_ffi.getTxKey(
+        Pointer.fromAddress(walletPtrAddress),
+        txid: txid,
+      );
+
+      return Transaction(
+        displayLabel: xmr_ffi.getTransactionInfoLabel(infoPointer),
+        description: xmr_ffi.getTransactionInfoDescription(infoPointer),
+        fee: BigInt.from(xmr_ffi.getTransactionInfoFee(infoPointer)),
+        confirmations: xmr_ffi.getTransactionInfoConfirmations(infoPointer),
+        blockHeight: xmr_ffi.getTransactionInfoBlockHeight(infoPointer),
+        accountIndex: xmr_ffi.getTransactionInfoAccount(infoPointer),
+        addressIndexes: xmr_ffi.getTransactionSubaddressIndexes(infoPointer),
+        paymentId: xmr_ffi.getTransactionInfoPaymentId(infoPointer),
+        amount: BigInt.from(xmr_ffi.getTransactionInfoAmount(infoPointer)),
+        isSpend: xmr_ffi.getTransactionInfoIsSpend(infoPointer),
+        hash: txid,
+        key: key,
+        timeStamp: DateTime.fromMillisecondsSinceEpoch(
+          xmr_ffi.getTransactionInfoTimestamp(infoPointer) * 1000,
+        ),
+        minConfirms: MinConfirms.monero,
+      ).toMap();
+    });
+
+    return Transaction.fromMap(txData);
   }
 
   // ===========================================================================
@@ -699,13 +715,13 @@ class MoneroWallet extends Wallet {
   }
 
   @override
-  Future<String> getSeed() async {
+  Future<String> getSeed({String seedOffset = ""}) async {
     final walletPointerAddress = _getWalletPointer().address;
 
     return await Isolate.run(() {
       final polySeed = xmr_ffi.getWalletPolyseed(
         Pointer.fromAddress(walletPointerAddress),
-        passphrase: "",
+        passphrase: seedOffset,
       );
       if (polySeed != "") {
         return polySeed;
@@ -713,7 +729,7 @@ class MoneroWallet extends Wallet {
 
       final legacy = xmr_ffi.getWalletSeed(
         Pointer.fromAddress(walletPointerAddress),
-        seedOffset: "",
+        seedOffset: seedOffset,
       );
       return legacy;
     });
@@ -972,16 +988,12 @@ class MoneroWallet extends Wallet {
       await refreshTransactions();
     }
 
-    final address = _transactionHistoryPointer!.address;
-
-    return await Isolate.run(() {
-      return _transactionFrom(
-        xmr_ffi.getTransactionInfoPointerByTxid(
-          Pointer.fromAddress(address),
-          txid: txid,
-        ),
-      );
-    });
+    return _transactionFrom(
+      xmr_ffi.getTransactionInfoPointerByTxid(
+        _transactionHistoryPointer!,
+        txid: txid,
+      ),
+    );
   }
 
   @override
@@ -1007,50 +1019,24 @@ class MoneroWallet extends Wallet {
     }
 
     final size = await transactionCount();
-    final address = _transactionHistoryPointer!.address;
-
-    return Isolate.run(() async {
-      final ptr = Pointer.fromAddress(address);
-
-      final List<Transaction> result = [];
-
-      for (int i = 0; i < size; i++) {
-        result.add(
-          await _transactionFrom(
-            xmr_ffi.getTransactionInfoPointer(
-              ptr.cast(),
-              index: i,
-            ),
-          ),
-        );
-      }
-
-      return result;
-    });
-  }
-
-  @override
-  Future<List<Transaction>> getTxs({
-    required Set<String> txids,
-    bool refresh = false,
-  }) async {
-    if (txids.isEmpty) {
-      return [];
-    }
-
-    if (refresh) {
-      await refreshTransactions();
-    }
 
     final List<Transaction> result = [];
-    for (final txid in txids) {
-      result.add(await getTx(txid, refresh: false));
+    for (int i = 0; i < size; i++) {
+      result.add(
+        await _transactionFrom(
+          xmr_ffi.getTransactionInfoPointer(
+            _transactionHistoryPointer!,
+            index: i,
+          ),
+        ),
+      );
     }
+
     return result;
   }
 
   @override
-  Future<List<Transaction>> getAllTxs({bool refresh = false}) async {
+  Future<List<String>> getAllTxids({bool refresh = false}) async {
     if (refresh) {
       await refreshTransactions();
     }
@@ -1074,25 +1060,6 @@ class MoneroWallet extends Wallet {
   }
 
   @override
-  Future<List<String>> getAllTxids({bool refresh = false}) async {
-    if (refresh) {
-      await refreshTransactions();
-    }
-
-    final size = transactionCount();
-
-    return List.generate(
-      size,
-      (index) => xmr_ffi.getTransactionInfoHash(
-        xmr_ffi.getTransactionInfoPointer(
-          _transactionHistoryPointer!,
-          index: index,
-        ),
-      ),
-    );
-  }
-
-  @override
   Future<List<Output>> getOutputs({
     bool includeSpent = false,
     bool refresh = false,
@@ -1101,46 +1068,49 @@ class MoneroWallet extends Wallet {
       if (refresh) {
         await refreshOutputs();
       }
-      final count = xmr_ffi.getCoinsCount(_coinsPointer!);
 
-      Logging.log?.i("monero outputs found=$count");
+      final address = _coinsPointer!.address;
 
-      final List<Output> result = [];
+      return Isolate.run(() {
+        final List<Output> result = [];
 
-      for (int i = 0; i < count; i++) {
-        final coinInfoPointer = xmr_ffi.getCoinInfoPointer(_coinsPointer!, i);
+        final ptr = Pointer.fromAddress(address);
 
-        final hash = xmr_ffi.getHashForCoinsInfo(coinInfoPointer);
+        final count = xmr_ffi.getCoinsCount(ptr.cast());
+        for (int i = 0; i < count; i++) {
+          final coinInfoPointer = xmr_ffi.getCoinInfoPointer(ptr.cast(), i);
 
-        if (hash.isNotEmpty) {
-          final spent = xmr_ffi.isSpentCoinsInfo(coinInfoPointer);
+          final hash = xmr_ffi.getHashForCoinsInfo(coinInfoPointer);
 
-          if (includeSpent || !spent) {
-            final utxo = Output(
-              address: xmr_ffi.getAddressForCoinsInfo(coinInfoPointer),
-              hash: hash,
-              keyImage: xmr_ffi.getKeyImageForCoinsInfo(coinInfoPointer),
-              value:
-                  BigInt.from(xmr_ffi.getAmountForCoinsInfo(coinInfoPointer)),
-              isFrozen: xmr_ffi.isFrozenCoinsInfo(coinInfoPointer),
-              isUnlocked: xmr_ffi.isUnlockedCoinsInfo(coinInfoPointer),
-              vout: xmr_ffi.getInternalOutputIndexForCoinsInfo(coinInfoPointer),
-              spent: spent,
-              spentHeight: spent
-                  ? xmr_ffi.getSpentHeightForCoinsInfo(coinInfoPointer)
-                  : null,
-              height: xmr_ffi.getBlockHeightForCoinsInfo(coinInfoPointer),
-              coinbase: xmr_ffi.isCoinbaseCoinsInfo(coinInfoPointer),
-            );
+          if (hash.isNotEmpty) {
+            final spent = xmr_ffi.isSpentCoinsInfo(coinInfoPointer);
 
-            result.add(utxo);
+            if (includeSpent || !spent) {
+              final utxo = Output(
+                address: xmr_ffi.getAddressForCoinsInfo(coinInfoPointer),
+                hash: hash,
+                keyImage: xmr_ffi.getKeyImageForCoinsInfo(coinInfoPointer),
+                value:
+                    BigInt.from(xmr_ffi.getAmountForCoinsInfo(coinInfoPointer)),
+                isFrozen: xmr_ffi.isFrozenCoinsInfo(coinInfoPointer),
+                isUnlocked: xmr_ffi.isUnlockedCoinsInfo(coinInfoPointer),
+                vout:
+                    xmr_ffi.getInternalOutputIndexForCoinsInfo(coinInfoPointer),
+                spent: spent,
+                spentHeight: spent
+                    ? xmr_ffi.getSpentHeightForCoinsInfo(coinInfoPointer)
+                    : null,
+                height: xmr_ffi.getBlockHeightForCoinsInfo(coinInfoPointer),
+                coinbase: xmr_ffi.isCoinbaseCoinsInfo(coinInfoPointer),
+              );
+
+              result.add(utxo);
+            }
           }
-        } else {
-          Logging.log?.w("Found empty hash in monero utxo?!");
         }
-      }
 
-      return result;
+        return result;
+      });
     } catch (e, s) {
       Logging.log?.w("getOutputs failed", error: e, stackTrace: s);
       rethrow;

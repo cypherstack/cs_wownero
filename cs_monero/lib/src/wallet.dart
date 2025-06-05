@@ -53,45 +53,64 @@ abstract class Wallet {
   BigInt? _lastBalanceUnlocked;
   BigInt? _lastBalanceFull;
 
+  // TODO handle this differently when time is available. Band-aid it is for now.
+  static const _timeout = Duration(seconds: 2);
   void _poll() async {
     Logging.log?.d("Polling");
-
-    final full = await getBalance();
-    final unlocked = await getUnlockedBalance();
-    if (unlocked != _lastBalanceUnlocked || full != _lastBalanceFull) {
-      Logging.log?.d("listener.onBalancesChanged");
+    try {
+      final full = await getBalance().timeout(_timeout);
+      final unlocked = await getUnlockedBalance().timeout(_timeout);
+      if (unlocked != _lastBalanceUnlocked || full != _lastBalanceFull) {
+        Logging.log?.d("listener.onBalancesChanged");
+        for (final listener in getListeners()) {
+          listener.onBalancesChanged
+              ?.call(newBalance: full, newUnlockedBalance: unlocked);
+        }
+      }
+      _lastBalanceUnlocked = unlocked;
+      _lastBalanceFull = full;
+    } catch (error, stackTrace) {
       for (final listener in getListeners()) {
-        listener.onBalancesChanged
-            ?.call(newBalance: full, newUnlockedBalance: unlocked);
+        listener.onError?.call(error, stackTrace);
       }
     }
-    _lastBalanceUnlocked = unlocked;
-    _lastBalanceFull = full;
+    try {
+      final nodeHeight = await getDaemonHeight().timeout(_timeout);
+      final heightChanged = nodeHeight != _lastDaemonHeight;
+      if (heightChanged) {
+        Logging.log?.d("listener.onNewBlock");
+        for (final listener in getListeners()) {
+          listener.onNewBlock?.call(nodeHeight);
+        }
+      }
+      _lastDaemonHeight = nodeHeight;
 
-    final nodeHeight = await getDaemonHeight();
-    final heightChanged = nodeHeight != _lastDaemonHeight;
-    if (heightChanged) {
-      Logging.log?.d("listener.onNewBlock");
+      try {
+        final currentSyncingHeight =
+            await getCurrentWalletSyncingHeight().timeout(_timeout);
+        if (currentSyncingHeight >= 0 &&
+            currentSyncingHeight <= nodeHeight &&
+            (heightChanged || currentSyncingHeight != _lastSyncHeight)) {
+          Logging.log?.d("listener.onSyncingUpdate");
+          for (final listener in getListeners()) {
+            listener.onSyncingUpdate?.call(
+              syncHeight: currentSyncingHeight,
+              nodeHeight: nodeHeight,
+            );
+          }
+        }
+
+        _lastSyncHeight = currentSyncingHeight;
+      } catch (error, stackTrace) {
+        for (final listener in getListeners()) {
+          listener.onError?.call(error, stackTrace);
+        }
+      }
+    } catch (error, stackTrace) {
       for (final listener in getListeners()) {
-        listener.onNewBlock?.call(nodeHeight);
+        listener.onError?.call(error, stackTrace);
       }
     }
-    _lastDaemonHeight = nodeHeight;
-
-    final currentSyncingHeight = await getCurrentWalletSyncingHeight();
-    if (currentSyncingHeight >= 0 &&
-        currentSyncingHeight <= nodeHeight &&
-        (heightChanged || currentSyncingHeight != _lastSyncHeight)) {
-      Logging.log?.d("listener.onSyncingUpdate");
-      for (final listener in getListeners()) {
-        listener.onSyncingUpdate?.call(
-          syncHeight: currentSyncingHeight,
-          nodeHeight: nodeHeight,
-        );
-      }
-    }
-
-    _lastSyncHeight = currentSyncingHeight;
   }
 
   Timer? _autoSaveTimer;

@@ -46,24 +46,40 @@ class WowneroWallet extends Wallet {
   //  ==== private helpers =====================================================
 
   Future<Transaction> _transactionFrom(Pointer<Void> infoPointer) async {
-    return Transaction(
-      displayLabel: wow_ffi.getTransactionInfoLabel(infoPointer),
-      description: wow_ffi.getTransactionInfoDescription(infoPointer),
-      fee: BigInt.from(wow_ffi.getTransactionInfoFee(infoPointer)),
-      confirmations: wow_ffi.getTransactionInfoConfirmations(infoPointer),
-      blockHeight: wow_ffi.getTransactionInfoBlockHeight(infoPointer),
-      accountIndex: wow_ffi.getTransactionInfoAccount(infoPointer),
-      addressIndexes: wow_ffi.getTransactionSubaddressIndexes(infoPointer),
-      paymentId: wow_ffi.getTransactionInfoPaymentId(infoPointer),
-      amount: BigInt.from(wow_ffi.getTransactionInfoAmount(infoPointer)),
-      isSpend: wow_ffi.getTransactionInfoIsSpend(infoPointer),
-      hash: wow_ffi.getTransactionInfoHash(infoPointer),
-      key: await getTxKey(wow_ffi.getTransactionInfoHash(infoPointer)),
-      timeStamp: DateTime.fromMillisecondsSinceEpoch(
-        wow_ffi.getTransactionInfoTimestamp(infoPointer) * 1000,
-      ),
-      minConfirms: MinConfirms.monero,
-    );
+    final address = infoPointer.address;
+    final walletPtrAddress = _getWalletPointer().address;
+
+    final txData = await Isolate.run(() {
+      final infoPointer = Pointer<Void>.fromAddress(address);
+
+      final txid = wow_ffi.getTransactionInfoHash(infoPointer);
+
+      final key = wow_ffi.getTxKey(
+        Pointer.fromAddress(walletPtrAddress),
+        txid: txid,
+      );
+
+      return Transaction(
+        displayLabel: wow_ffi.getTransactionInfoLabel(infoPointer),
+        description: wow_ffi.getTransactionInfoDescription(infoPointer),
+        fee: BigInt.from(wow_ffi.getTransactionInfoFee(infoPointer)),
+        confirmations: wow_ffi.getTransactionInfoConfirmations(infoPointer),
+        blockHeight: wow_ffi.getTransactionInfoBlockHeight(infoPointer),
+        accountIndex: wow_ffi.getTransactionInfoAccount(infoPointer),
+        addressIndexes: wow_ffi.getTransactionSubaddressIndexes(infoPointer),
+        paymentId: wow_ffi.getTransactionInfoPaymentId(infoPointer),
+        amount: BigInt.from(wow_ffi.getTransactionInfoAmount(infoPointer)),
+        isSpend: wow_ffi.getTransactionInfoIsSpend(infoPointer),
+        hash: txid,
+        key: key,
+        timeStamp: DateTime.fromMillisecondsSinceEpoch(
+          wow_ffi.getTransactionInfoTimestamp(infoPointer) * 1000,
+        ),
+        minConfirms: MinConfirms.monero,
+      ).toMap();
+    });
+
+    return Transaction.fromMap(txData);
   }
 
   // ===========================================================================
@@ -579,10 +595,15 @@ class WowneroWallet extends Wallet {
 
   // ===========================================================================
   // special check to see if wallet exists
-  static bool isWalletExist(String path) => wow_wm_ffi.walletExists(
-        _walletManagerPointer,
+  static Future<bool> isWalletExist(String path) async {
+    final address = _walletManagerPointer.address;
+    return Isolate.run(() {
+      return wow_wm_ffi.walletExists(
+        Pointer.fromAddress(address),
         path,
       );
+    });
+  }
 
   // ===========================================================================
   // === Internal overrides ====================================================
@@ -1030,16 +1051,12 @@ class WowneroWallet extends Wallet {
       await refreshTransactions();
     }
 
-    final address = _transactionHistoryPointer!.address;
-
-    return await Isolate.run(() {
-      return _transactionFrom(
-        wow_ffi.getTransactionInfoPointerByTxid(
-          Pointer.fromAddress(address),
-          txid: txid,
-        ),
-      );
-    });
+    return _transactionFrom(
+      wow_ffi.getTransactionInfoPointerByTxid(
+        _transactionHistoryPointer!,
+        txid: txid,
+      ),
+    );
   }
 
   @override
@@ -1051,36 +1068,6 @@ class WowneroWallet extends Wallet {
       await refreshTransactions();
     }
 
-    final size = await transactionCount();
-    final address = _transactionHistoryPointer!.address;
-    final List<Transaction> result = [];
-    for (int i = 0; i < size; i++) {
-      result.add(
-        await _transactionFrom(
-          wow_ffi.getTransactionInfoPointer(
-            Pointer.fromAddress(address),
-            index: i,
-          ),
-        ),
-      );
-    }
-
-    return result;
-  }
-
-  @override
-  Future<List<Transaction>> getTxs({
-    required Set<String> txids,
-    bool refresh = false,
-  }) async {
-    if (txids.isEmpty) {
-      return [];
-    }
-
-    if (refresh) {
-      await refreshTransactions();
-    }
-isolate
     final List<Transaction> result = [];
     for (final txid in txids) {
       result.add(await getTx(txid, refresh: false));
@@ -1094,27 +1081,21 @@ isolate
       await refreshTransactions();
     }
 
-    final address = _transactionHistoryPointer!.address;
-
     final size = await transactionCount();
-    return Isolate.run(() async {
-      final ptr = Pointer.fromAddress(address);
 
-      final List<Transaction> result = [];
-
-      for (int i = 0; i < size; i++) {
-        result.add(
-          await _transactionFrom(
-            wow_ffi.getTransactionInfoPointer(
-              ptr.cast(),
-              index: i,
-            ),
+    final List<Transaction> result = [];
+    for (int i = 0; i < size; i++) {
+      result.add(
+        await _transactionFrom(
+          wow_ffi.getTransactionInfoPointer(
+            _transactionHistoryPointer!,
+            index: i,
           ),
-        );
-      }
+        ),
+      );
+    }
 
-      return result;
-    });
+    return result;
   }
 
   @override
@@ -1150,46 +1131,49 @@ isolate
       if (refresh) {
         await refreshOutputs();
       }
-      final count = wow_ffi.getCoinsCount(_coinsPointer!);
 
-      Logging.log?.i("wownero outputs found=$count");
+      final address = _coinsPointer!.address;
 
-      final List<Output> result = [];
+      return Isolate.run(() {
+        final List<Output> result = [];
 
-      for (int i = 0; i < count; i++) {
-        final coinInfoPointer = wow_ffi.getCoinInfoPointer(_coinsPointer!, i);
+        final ptr = Pointer.fromAddress(address);
 
-        final hash = wow_ffi.getHashForCoinsInfo(coinInfoPointer);
+        final count = wow_ffi.getCoinsCount(ptr.cast());
+        for (int i = 0; i < count; i++) {
+          final coinInfoPointer = wow_ffi.getCoinInfoPointer(ptr.cast(), i);
 
-        if (hash.isNotEmpty) {
-          final spent = wow_ffi.isSpentCoinsInfo(coinInfoPointer);
+          final hash = wow_ffi.getHashForCoinsInfo(coinInfoPointer);
 
-          if (includeSpent || !spent) {
-            final utxo = Output(
-              address: wow_ffi.getAddressForCoinsInfo(coinInfoPointer),
-              hash: hash,
-              keyImage: wow_ffi.getKeyImageForCoinsInfo(coinInfoPointer),
-              value:
-                  BigInt.from(wow_ffi.getAmountForCoinsInfo(coinInfoPointer)),
-              isFrozen: wow_ffi.isFrozenCoinsInfo(coinInfoPointer),
-              isUnlocked: wow_ffi.isUnlockedCoinsInfo(coinInfoPointer),
-              vout: wow_ffi.getInternalOutputIndexForCoinsInfo(coinInfoPointer),
-              spent: spent,
-              spentHeight: spent
-                  ? wow_ffi.getSpentHeightForCoinsInfo(coinInfoPointer)
-                  : null,
-              height: wow_ffi.getBlockHeightForCoinsInfo(coinInfoPointer),
-              coinbase: wow_ffi.isCoinbaseCoinsInfo(coinInfoPointer),
-            );
+          if (hash.isNotEmpty) {
+            final spent = wow_ffi.isSpentCoinsInfo(coinInfoPointer);
 
-            result.add(utxo);
+            if (includeSpent || !spent) {
+              final utxo = Output(
+                address: wow_ffi.getAddressForCoinsInfo(coinInfoPointer),
+                hash: hash,
+                keyImage: wow_ffi.getKeyImageForCoinsInfo(coinInfoPointer),
+                value:
+                    BigInt.from(wow_ffi.getAmountForCoinsInfo(coinInfoPointer)),
+                isFrozen: wow_ffi.isFrozenCoinsInfo(coinInfoPointer),
+                isUnlocked: wow_ffi.isUnlockedCoinsInfo(coinInfoPointer),
+                vout:
+                    wow_ffi.getInternalOutputIndexForCoinsInfo(coinInfoPointer),
+                spent: spent,
+                spentHeight: spent
+                    ? wow_ffi.getSpentHeightForCoinsInfo(coinInfoPointer)
+                    : null,
+                height: wow_ffi.getBlockHeightForCoinsInfo(coinInfoPointer),
+                coinbase: wow_ffi.isCoinbaseCoinsInfo(coinInfoPointer),
+              );
+
+              result.add(utxo);
+            }
           }
-        } else {
-          Logging.log?.w("Found empty hash in monero utxo?!");
         }
-      }
 
-      return result;
+        return result;
+      });
     } catch (e, s) {
       Logging.log?.w("getOutputs failed", error: e, stackTrace: s);
       rethrow;
