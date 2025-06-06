@@ -1,3 +1,7 @@
+## 1.0.0
+
+ - Graduate package to a stable release. See pre-releases prior to this version for changelog entries.
+
 ## 1.0.0-pre.3
 
  - **FEAT**: expose seed offset/passphrase. ([21c091fe](https://github.com/cypherstack/cs_monero/commit/21c091fe7a0db32041aa46b7b1098b5c53c529c5))

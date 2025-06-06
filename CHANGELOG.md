@@ -3,6 +3,69 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-06-06
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - [`cs_monero` - `v1.0.0`](#cs_monero---v100)
+ - [`cs_monero_flutter_libs` - `v1.0.0`](#cs_monero_flutter_libs---v100)
+ - [`cs_monero_flutter_libs_android` - `v1.0.0`](#cs_monero_flutter_libs_android---v100)
+ - [`cs_monero_flutter_libs_android_arm64_v8a` - `v1.0.0`](#cs_monero_flutter_libs_android_arm64_v8a---v100)
+ - [`cs_monero_flutter_libs_android_armeabi_v7a` - `v1.0.0`](#cs_monero_flutter_libs_android_armeabi_v7a---v100)
+ - [`cs_monero_flutter_libs_android_x86_64` - `v1.0.0`](#cs_monero_flutter_libs_android_x86_64---v100)
+ - [`cs_monero_flutter_libs_ios` - `v1.0.0`](#cs_monero_flutter_libs_ios---v100)
+ - [`cs_monero_flutter_libs_linux` - `v1.0.0`](#cs_monero_flutter_libs_linux---v100)
+ - [`cs_monero_flutter_libs_macos` - `v1.0.0`](#cs_monero_flutter_libs_macos---v100)
+ - [`cs_monero_flutter_libs_platform_interface` - `v1.0.0`](#cs_monero_flutter_libs_platform_interface---v100)
+ - [`cs_monero_flutter_libs_windows` - `v1.0.0`](#cs_monero_flutter_libs_windows---v100)
+
+Packages with other changes:
+
+ - There are no other changes in this release.
+
+Packages graduated to a stable release (see pre-releases prior to the stable version for changelog entries):
+
+ - `cs_monero` - `v1.0.0`
+ - `cs_monero_flutter_libs` - `v1.0.0`
+ - `cs_monero_flutter_libs_android` - `v1.0.0`
+ - `cs_monero_flutter_libs_android_arm64_v8a` - `v1.0.0`
+ - `cs_monero_flutter_libs_android_armeabi_v7a` - `v1.0.0`
+ - `cs_monero_flutter_libs_android_x86_64` - `v1.0.0`
+ - `cs_monero_flutter_libs_ios` - `v1.0.0`
+ - `cs_monero_flutter_libs_linux` - `v1.0.0`
+ - `cs_monero_flutter_libs_macos` - `v1.0.0`
+ - `cs_monero_flutter_libs_platform_interface` - `v1.0.0`
+ - `cs_monero_flutter_libs_windows` - `v1.0.0`
+
+---
+
+#### `cs_monero` - `v1.0.0`
+
+#### `cs_monero_flutter_libs` - `v1.0.0`
+
+#### `cs_monero_flutter_libs_android` - `v1.0.0`
+
+#### `cs_monero_flutter_libs_android_arm64_v8a` - `v1.0.0`
+
+#### `cs_monero_flutter_libs_android_armeabi_v7a` - `v1.0.0`
+
+#### `cs_monero_flutter_libs_android_x86_64` - `v1.0.0`
+
+#### `cs_monero_flutter_libs_ios` - `v1.0.0`
+
+#### `cs_monero_flutter_libs_linux` - `v1.0.0`
+
+#### `cs_monero_flutter_libs_macos` - `v1.0.0`
+
+#### `cs_monero_flutter_libs_platform_interface` - `v1.0.0`
+
+#### `cs_monero_flutter_libs_windows` - `v1.0.0`
+
+
 ## 2025-04-25
 
 ### Changes
