@@ -45,25 +45,41 @@ class WowneroWallet extends Wallet {
   // ===========================================================================
   //  ==== private helpers =====================================================
 
-  Transaction _transactionFrom(Pointer<Void> infoPointer) {
-    return Transaction(
-      displayLabel: wow_ffi.getTransactionInfoLabel(infoPointer),
-      description: wow_ffi.getTransactionInfoDescription(infoPointer),
-      fee: BigInt.from(wow_ffi.getTransactionInfoFee(infoPointer)),
-      confirmations: wow_ffi.getTransactionInfoConfirmations(infoPointer),
-      blockHeight: wow_ffi.getTransactionInfoBlockHeight(infoPointer),
-      accountIndex: wow_ffi.getTransactionInfoAccount(infoPointer),
-      addressIndexes: wow_ffi.getTransactionSubaddressIndexes(infoPointer),
-      paymentId: wow_ffi.getTransactionInfoPaymentId(infoPointer),
-      amount: BigInt.from(wow_ffi.getTransactionInfoAmount(infoPointer)),
-      isSpend: wow_ffi.getTransactionInfoIsSpend(infoPointer),
-      hash: wow_ffi.getTransactionInfoHash(infoPointer),
-      key: getTxKey(wow_ffi.getTransactionInfoHash(infoPointer)),
-      timeStamp: DateTime.fromMillisecondsSinceEpoch(
-        wow_ffi.getTransactionInfoTimestamp(infoPointer) * 1000,
-      ),
-      minConfirms: MinConfirms.monero,
-    );
+  Future<Transaction> _transactionFrom(Pointer<Void> infoPointer) async {
+    final address = infoPointer.address;
+    final walletPtrAddress = _getWalletPointer().address;
+
+    final txData = await Isolate.run(() {
+      final infoPointer = Pointer<Void>.fromAddress(address);
+
+      final txid = wow_ffi.getTransactionInfoHash(infoPointer);
+
+      final key = wow_ffi.getTxKey(
+        Pointer.fromAddress(walletPtrAddress),
+        txid: txid,
+      );
+
+      return Transaction(
+        displayLabel: wow_ffi.getTransactionInfoLabel(infoPointer),
+        description: wow_ffi.getTransactionInfoDescription(infoPointer),
+        fee: BigInt.from(wow_ffi.getTransactionInfoFee(infoPointer)),
+        confirmations: wow_ffi.getTransactionInfoConfirmations(infoPointer),
+        blockHeight: wow_ffi.getTransactionInfoBlockHeight(infoPointer),
+        accountIndex: wow_ffi.getTransactionInfoAccount(infoPointer),
+        addressIndexes: wow_ffi.getTransactionSubaddressIndexes(infoPointer),
+        paymentId: wow_ffi.getTransactionInfoPaymentId(infoPointer),
+        amount: BigInt.from(wow_ffi.getTransactionInfoAmount(infoPointer)),
+        isSpend: wow_ffi.getTransactionInfoIsSpend(infoPointer),
+        hash: txid,
+        key: key,
+        timeStamp: DateTime.fromMillisecondsSinceEpoch(
+          wow_ffi.getTransactionInfoTimestamp(infoPointer) * 1000,
+        ),
+        minConfirms: MinConfirms.monero,
+      ).toMap();
+    });
+
+    return Transaction.fromMap(txData);
   }
 
   // ===========================================================================
@@ -127,24 +143,31 @@ class WowneroWallet extends Wallet {
           );
         }
 
-        walletPointer = wow_ffi.create14WordSeed(
-          path: path,
-          password: password,
-          language: language,
-          networkType: networkType,
-        );
+        walletPointer = await Isolate.run(() {
+          return wow_ffi.create14WordSeed(
+            path: path,
+            password: password,
+            language: language,
+            networkType: networkType,
+          );
+        });
+        final address = walletPointer.address;
 
         // get the generated seed
-        final seed = wow_ffi.getWalletCacheAttribute(
-          walletPointer,
-          key: "cake.seed",
-        );
+        final seed = await Isolate.run(() {
+          return wow_ffi.getWalletCacheAttribute(
+            Pointer.fromAddress(address),
+            key: "cake.seed",
+          );
+        });
         // store generated seed with the correct cache key
-        wow_ffi.setWalletCacheAttribute(
-          walletPointer,
-          key: _kFourteenWordSeedCacheKey,
-          value: seed,
-        );
+        await Isolate.run(() {
+          return wow_ffi.setWalletCacheAttribute(
+            Pointer.fromAddress(address),
+            key: _kFourteenWordSeedCacheKey,
+            value: seed,
+          );
+        });
         break;
 
       case WowneroSeedType.sixteen:
@@ -268,28 +291,40 @@ class WowneroWallet extends Wallet {
         ),
       );
     } else if (seedLength == 14) {
-      walletPointer = wow_ffi.restore14WordSeed(
-        path: path,
-        password: password,
-        language: seed, // yes the "language" param is misnamed
-        networkType: networkType,
-      );
-      restoreHeight = wow_ffi.getWalletRefreshFromBlockHeight(walletPointer);
+      walletPointer = await Isolate.run(() {
+        return wow_ffi.restore14WordSeed(
+          path: path,
+          password: password,
+          language: seed, // yes the "language" param is misnamed
+          networkType: networkType,
+        );
+      });
+      final walletPointerAddress = walletPointer.address;
+      restoreHeight = await Isolate.run(() {
+        return wow_ffi.getWalletRefreshFromBlockHeight(
+          Pointer.fromAddress(walletPointerAddress),
+        );
+      });
       // store seed with the correct cache key
-      wow_ffi.setWalletCacheAttribute(
-        walletPointer,
-        key: _kFourteenWordSeedCacheKey,
-        value: seed,
-      );
+      await Isolate.run(() {
+        return wow_ffi.setWalletCacheAttribute(
+          Pointer.fromAddress(walletPointerAddress),
+          key: _kFourteenWordSeedCacheKey,
+          value: seed,
+        );
+      });
     } else {
       throw Exception("Bad seed length: $seedLength");
     }
 
     wow_ffi.checkWalletStatus(walletPointer);
 
-    final address = walletPointer.address;
+    final walletPointerAddress = walletPointer.address;
     await Isolate.run(() {
-      wow_ffi.storeWallet(Pointer.fromAddress(address), path: path);
+      wow_ffi.storeWallet(
+        Pointer.fromAddress(walletPointerAddress),
+        path: path,
+      );
     });
 
     final wallet = WowneroWallet._(walletPointer);
@@ -560,10 +595,15 @@ class WowneroWallet extends Wallet {
 
   // ===========================================================================
   // special check to see if wallet exists
-  static bool isWalletExist(String path) => wow_wm_ffi.walletExists(
-        _walletManagerPointer,
+  static Future<bool> isWalletExist(String path) async {
+    final address = _walletManagerPointer.address;
+    return Isolate.run(() {
+      return wow_wm_ffi.walletExists(
+        Pointer.fromAddress(address),
         path,
       );
+    });
+  }
 
   // ===========================================================================
   // === Internal overrides ====================================================
@@ -601,16 +641,27 @@ class WowneroWallet extends Wallet {
 
   @override
   @protected
-  int transactionCount() => wow_ffi.getTransactionHistoryCount(
-        _transactionHistoryPointer!,
+  Future<int> transactionCount() async {
+    final address = _transactionHistoryPointer!.address;
+    return await Isolate.run(() {
+      return wow_ffi.getTransactionHistoryCount(
+        Pointer.fromAddress(address),
       );
+    });
+  }
 
   // ===========================================================================
   // === Overrides =============================================================
 
   @override
-  int getCurrentWalletSyncingHeight() =>
-      wow_ffi.getWalletBlockChainHeight(_getWalletPointer());
+  Future<int> getCurrentWalletSyncingHeight() async {
+    final walletPointerAddress = _getWalletPointer().address;
+    return await Isolate.run(() {
+      return wow_ffi.getWalletBlockChainHeight(
+        Pointer.fromAddress(walletPointerAddress),
+      );
+    });
+  }
 
   @override
   int getBlockChainHeightByDate(DateTime date) {
@@ -670,9 +721,11 @@ class WowneroWallet extends Wallet {
   // }
 
   @override
-  bool isViewOnly() {
-    final isWatchOnly = wow_ffi.isWatchOnly(_getWalletPointer());
-    return isWatchOnly;
+  Future<bool> isViewOnly() async {
+    final walletPointerAddress = _getWalletPointer().address;
+    return await Isolate.run(() {
+      return wow_ffi.isWatchOnly(Pointer.fromAddress(walletPointerAddress));
+    });
   }
 
   // @override
@@ -695,8 +748,8 @@ class WowneroWallet extends Wallet {
     // As such, we'll just do an approximation and assume (probably wrongly so)
     // that current sync/scan height and daemon height calls will return sane
     // values.
-    final current = getCurrentWalletSyncingHeight();
-    final daemonHeight = getDaemonHeight();
+    final current = await getCurrentWalletSyncingHeight();
+    final daemonHeight = await getDaemonHeight();
 
     // if difference is less than an arbitrary low but non zero value, then make
     // the call to `Wallet_synchronized`
@@ -712,108 +765,162 @@ class WowneroWallet extends Wallet {
   }
 
   @override
-  String getPath() {
-    final path = wow_ffi.getWalletPath(_getWalletPointer());
-    return path;
+  Future<String> getPath() async {
+    final walletPointerAddress = _getWalletPointer().address;
+    return await Isolate.run(() {
+      return wow_ffi.getWalletPath(Pointer.fromAddress(walletPointerAddress));
+    });
   }
 
   @override
-  String getSeed({String seedOffset = ""}) {
-    final fourteen = wow_ffi.getWalletCacheAttribute(
-      _getWalletPointer(),
-      key: _kFourteenWordSeedCacheKey,
-    );
-    if (fourteen != "") {
-      return fourteen;
-    }
+  Future<String> getSeed({String seedOffset = ""}) async {
+    final walletPointerAddress = _getWalletPointer().address;
 
-    final polySeed = wow_ffi.getWalletPolyseed(
-      _getWalletPointer(),
-      passphrase: seedOffset,
-    );
-    if (polySeed != "") {
-      return polySeed;
-    }
-    final legacy = wow_ffi.getWalletSeed(
-      _getWalletPointer(),
-      seedOffset: seedOffset,
-    );
-    return legacy;
+    return await Isolate.run(() {
+      final fourteen = wow_ffi.getWalletCacheAttribute(
+        Pointer.fromAddress(walletPointerAddress),
+        key: _kFourteenWordSeedCacheKey,
+      );
+      if (fourteen != "") {
+        return fourteen;
+      }
+
+      final polySeed = wow_ffi.getWalletPolyseed(
+        Pointer.fromAddress(walletPointerAddress),
+        passphrase: seedOffset,
+      );
+      if (polySeed != "") {
+        return polySeed;
+      }
+
+      final legacy = wow_ffi.getWalletSeed(
+        Pointer.fromAddress(walletPointerAddress),
+        seedOffset: seedOffset,
+      );
+      return legacy;
+    });
   }
 
   @override
-  String getSeedLanguage() {
-    final language = wow_ffi.getWalletSeedLanguage(_getWalletPointer());
-    return language;
+  Future<String> getSeedLanguage() async {
+    final walletPointerAddress = _getWalletPointer().address;
+    return await Isolate.run(() {
+      return wow_ffi
+          .getWalletSeedLanguage(Pointer.fromAddress(walletPointerAddress));
+    });
   }
 
   @override
-  String getPrivateSpendKey() {
-    return wow_ffi.getWalletSecretSpendKey(_getWalletPointer());
+  Future<String> getPrivateSpendKey() async {
+    final walletPointerAddress = _getWalletPointer().address;
+    return await Isolate.run(() {
+      return wow_ffi
+          .getWalletSecretSpendKey(Pointer.fromAddress(walletPointerAddress));
+    });
   }
 
   @override
-  String getPrivateViewKey() {
-    return wow_ffi.getWalletSecretViewKey(_getWalletPointer());
+  Future<String> getPrivateViewKey() async {
+    final walletPointerAddress = _getWalletPointer().address;
+    return await Isolate.run(() {
+      return wow_ffi
+          .getWalletSecretViewKey(Pointer.fromAddress(walletPointerAddress));
+    });
   }
 
   @override
-  String getPublicSpendKey() {
-    return wow_ffi.getWalletPublicSpendKey(_getWalletPointer());
+  Future<String> getPublicSpendKey() async {
+    final walletPointerAddress = _getWalletPointer().address;
+    return await Isolate.run(() {
+      return wow_ffi
+          .getWalletPublicSpendKey(Pointer.fromAddress(walletPointerAddress));
+    });
   }
 
   @override
-  String getPublicViewKey() {
-    return wow_ffi.getWalletPublicViewKey(_getWalletPointer());
+  Future<String> getPublicViewKey() async {
+    final walletPointerAddress = _getWalletPointer().address;
+    return await Isolate.run(() {
+      return wow_ffi
+          .getWalletPublicViewKey(Pointer.fromAddress(walletPointerAddress));
+    });
   }
 
   @override
-  Address getAddress({int accountIndex = 0, int addressIndex = 0}) {
-    final address = Address(
-      value: wow_ffi.getWalletAddress(
-        _getWalletPointer(),
+  Future<Address> getAddress({
+    int accountIndex = 0,
+    int addressIndex = 0,
+  }) async {
+    final walletPointerAddress = _getWalletPointer().address;
+
+    return await Isolate.run(() {
+      final addressValue = wow_ffi.getWalletAddress(
+        Pointer.fromAddress(walletPointerAddress),
         accountIndex: accountIndex,
         addressIndex: addressIndex,
-      ),
-      account: accountIndex,
-      index: addressIndex,
-    );
+      );
 
-    return address;
+      return Address(
+        value: addressValue,
+        account: accountIndex,
+        index: addressIndex,
+      );
+    });
   }
 
   @override
-  int getDaemonHeight() {
-    return wow_ffi.getDaemonBlockChainHeight(_getWalletPointer());
+  Future<int> getDaemonHeight() async {
+    final walletPointerAddress = _getWalletPointer().address;
+    return await Isolate.run(() {
+      return wow_ffi
+          .getDaemonBlockChainHeight(Pointer.fromAddress(walletPointerAddress));
+    });
   }
 
   @override
-  int getRefreshFromBlockHeight() =>
-      wow_ffi.getWalletRefreshFromBlockHeight(_getWalletPointer());
-
-  @override
-  void setRefreshFromBlockHeight(int startHeight) {
-    wow_ffi.setWalletRefreshFromBlockHeight(
-      _getWalletPointer(),
-      refreshFromBlockHeight: startHeight,
-    );
+  Future<int> getRefreshFromBlockHeight() async {
+    final walletPointerAddress = _getWalletPointer().address;
+    return await Isolate.run(() {
+      return wow_ffi.getWalletRefreshFromBlockHeight(
+        Pointer.fromAddress(walletPointerAddress),
+      );
+    });
   }
 
   @override
-  void startSyncing({Duration interval = const Duration(seconds: 10)}) {
-    // 10 seconds seems to be the default in monero core
-    wow_ffi.setWalletAutoRefreshInterval(
-      _getWalletPointer(),
-      millis: interval.inMilliseconds,
-    );
-    wow_ffi.refreshWalletAsync(_getWalletPointer());
-    wow_ffi.startWalletRefresh(_getWalletPointer());
+  Future<void> setRefreshFromBlockHeight(int startHeight) async {
+    final walletPointerAddress = _getWalletPointer().address;
+    await Isolate.run(() {
+      wow_ffi.setWalletRefreshFromBlockHeight(
+        Pointer.fromAddress(walletPointerAddress),
+        refreshFromBlockHeight: startHeight,
+      );
+    });
   }
 
   @override
-  void stopSyncing() {
-    wow_ffi.pauseWalletRefresh(_getWalletPointer());
-    wow_ffi.stopWallet(_getWalletPointer());
+  Future<void> startSyncing({
+    Duration interval = const Duration(seconds: 10),
+  }) async {
+    final walletPointerAddress = _getWalletPointer().address;
+    await Isolate.run(() {
+      // 10 seconds seems to be the default in monero core
+      wow_ffi.setWalletAutoRefreshInterval(
+        Pointer.fromAddress(walletPointerAddress),
+        millis: interval.inMilliseconds,
+      );
+      wow_ffi.refreshWalletAsync(Pointer.fromAddress(walletPointerAddress));
+      wow_ffi.startWalletRefresh(Pointer.fromAddress(walletPointerAddress));
+    });
+  }
+
+  @override
+  Future<void> stopSyncing() async {
+    final walletPointerAddress = _getWalletPointer().address;
+    await Isolate.run(() {
+      wow_ffi.pauseWalletRefresh(Pointer.fromAddress(walletPointerAddress));
+      wow_ffi.stopWallet(Pointer.fromAddress(walletPointerAddress));
+    });
   }
 
   // /// returns true on success
@@ -837,20 +944,28 @@ class WowneroWallet extends Wallet {
   }
 
   @override
-  BigInt getBalance({int accountIndex = 0}) => BigInt.from(
-        wow_ffi.getWalletBalance(
-          _getWalletPointer(),
-          accountIndex: accountIndex,
-        ),
+  Future<BigInt> getBalance({int accountIndex = 0}) async {
+    final walletPointerAddress = _getWalletPointer().address;
+    return await Isolate.run(() {
+      final balance = wow_ffi.getWalletBalance(
+        Pointer.fromAddress(walletPointerAddress),
+        accountIndex: accountIndex,
       );
+      return BigInt.from(balance);
+    });
+  }
 
   @override
-  BigInt getUnlockedBalance({int accountIndex = 0}) => BigInt.from(
-        wow_ffi.getWalletUnlockedBalance(
-          _getWalletPointer(),
-          accountIndex: accountIndex,
-        ),
+  Future<BigInt> getUnlockedBalance({int accountIndex = 0}) async {
+    final walletPointerAddress = _getWalletPointer().address;
+    return await Isolate.run(() {
+      final unlockedBalance = wow_ffi.getWalletUnlockedBalance(
+        Pointer.fromAddress(walletPointerAddress),
+        accountIndex: accountIndex,
       );
+      return BigInt.from(unlockedBalance);
+    });
+  }
 
   // @override
   // List<Account> getAccounts({bool includeSubaddresses = false}) {
@@ -923,8 +1038,11 @@ class WowneroWallet extends Wallet {
   // }
 
   @override
-  String getTxKey(String txid) {
-    return wow_ffi.getTxKey(_getWalletPointer(), txid: txid);
+  Future<String> getTxKey(String txid) async {
+    final address = _getWalletPointer().address;
+    return await Isolate.run(() {
+      return wow_ffi.getTxKey(Pointer.fromAddress(address), txid: txid);
+    });
   }
 
   @override
@@ -946,10 +1064,6 @@ class WowneroWallet extends Wallet {
     required Set<String> txids,
     bool refresh = false,
   }) async {
-    if (txids.isEmpty) {
-      return [];
-    }
-
     if (refresh) {
       await refreshTransactions();
     }
@@ -967,17 +1081,21 @@ class WowneroWallet extends Wallet {
       await refreshTransactions();
     }
 
-    final size = transactionCount();
+    final size = await transactionCount();
 
-    return List.generate(
-      size,
-      (index) => _transactionFrom(
-        wow_ffi.getTransactionInfoPointer(
-          _transactionHistoryPointer!,
-          index: index,
+    final List<Transaction> result = [];
+    for (int i = 0; i < size; i++) {
+      result.add(
+        await _transactionFrom(
+          wow_ffi.getTransactionInfoPointer(
+            _transactionHistoryPointer!,
+            index: i,
+          ),
         ),
-      ),
-    );
+      );
+    }
+
+    return result;
   }
 
   @override
@@ -986,17 +1104,22 @@ class WowneroWallet extends Wallet {
       await refreshTransactions();
     }
 
-    final size = transactionCount();
+    final address = _transactionHistoryPointer!.address;
+    final size = await transactionCount();
 
-    return List.generate(
-      size,
-      (index) => wow_ffi.getTransactionInfoHash(
-        wow_ffi.getTransactionInfoPointer(
-          _transactionHistoryPointer!,
-          index: index,
+    return Isolate.run(() {
+      final ptr = Pointer.fromAddress(address);
+
+      return List.generate(
+        size,
+        (index) => wow_ffi.getTransactionInfoHash(
+          wow_ffi.getTransactionInfoPointer(
+            ptr.cast(),
+            index: index,
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   @override
@@ -1008,46 +1131,49 @@ class WowneroWallet extends Wallet {
       if (refresh) {
         await refreshOutputs();
       }
-      final count = wow_ffi.getCoinsCount(_coinsPointer!);
 
-      Logging.log?.i("wownero outputs found=$count");
+      final address = _coinsPointer!.address;
 
-      final List<Output> result = [];
+      return Isolate.run(() {
+        final List<Output> result = [];
 
-      for (int i = 0; i < count; i++) {
-        final coinInfoPointer = wow_ffi.getCoinInfoPointer(_coinsPointer!, i);
+        final ptr = Pointer.fromAddress(address);
 
-        final hash = wow_ffi.getHashForCoinsInfo(coinInfoPointer);
+        final count = wow_ffi.getCoinsCount(ptr.cast());
+        for (int i = 0; i < count; i++) {
+          final coinInfoPointer = wow_ffi.getCoinInfoPointer(ptr.cast(), i);
 
-        if (hash.isNotEmpty) {
-          final spent = wow_ffi.isSpentCoinsInfo(coinInfoPointer);
+          final hash = wow_ffi.getHashForCoinsInfo(coinInfoPointer);
 
-          if (includeSpent || !spent) {
-            final utxo = Output(
-              address: wow_ffi.getAddressForCoinsInfo(coinInfoPointer),
-              hash: hash,
-              keyImage: wow_ffi.getKeyImageForCoinsInfo(coinInfoPointer),
-              value:
-                  BigInt.from(wow_ffi.getAmountForCoinsInfo(coinInfoPointer)),
-              isFrozen: wow_ffi.isFrozenCoinsInfo(coinInfoPointer),
-              isUnlocked: wow_ffi.isUnlockedCoinsInfo(coinInfoPointer),
-              vout: wow_ffi.getInternalOutputIndexForCoinsInfo(coinInfoPointer),
-              spent: spent,
-              spentHeight: spent
-                  ? wow_ffi.getSpentHeightForCoinsInfo(coinInfoPointer)
-                  : null,
-              height: wow_ffi.getBlockHeightForCoinsInfo(coinInfoPointer),
-              coinbase: wow_ffi.isCoinbaseCoinsInfo(coinInfoPointer),
-            );
+          if (hash.isNotEmpty) {
+            final spent = wow_ffi.isSpentCoinsInfo(coinInfoPointer);
 
-            result.add(utxo);
+            if (includeSpent || !spent) {
+              final utxo = Output(
+                address: wow_ffi.getAddressForCoinsInfo(coinInfoPointer),
+                hash: hash,
+                keyImage: wow_ffi.getKeyImageForCoinsInfo(coinInfoPointer),
+                value:
+                    BigInt.from(wow_ffi.getAmountForCoinsInfo(coinInfoPointer)),
+                isFrozen: wow_ffi.isFrozenCoinsInfo(coinInfoPointer),
+                isUnlocked: wow_ffi.isUnlockedCoinsInfo(coinInfoPointer),
+                vout:
+                    wow_ffi.getInternalOutputIndexForCoinsInfo(coinInfoPointer),
+                spent: spent,
+                spentHeight: spent
+                    ? wow_ffi.getSpentHeightForCoinsInfo(coinInfoPointer)
+                    : null,
+                height: wow_ffi.getBlockHeightForCoinsInfo(coinInfoPointer),
+                coinbase: wow_ffi.isCoinbaseCoinsInfo(coinInfoPointer),
+              );
+
+              result.add(utxo);
+            }
           }
-        } else {
-          Logging.log?.w("Found empty hash in monero utxo?!");
         }
-      }
 
-      return result;
+        return result;
+      });
     } catch (e, s) {
       Logging.log?.w("getOutputs failed", error: e, stackTrace: s);
       rethrow;
@@ -1086,16 +1212,21 @@ class WowneroWallet extends Wallet {
       throw Exception("Attempted freeze of empty keyImage.");
     }
 
-    final count = wow_ffi.getAllCoinsSize(_coinsPointer!);
-    for (int i = 0; i < count; i++) {
-      if (keyImage ==
-          wow_ffi.getKeyImageForCoinsInfo(
-            wow_ffi.getCoinInfoPointer(_coinsPointer!, i),
-          )) {
-        wow_ffi.freezeCoin(_coinsPointer!, index: i);
-        return;
+    final address = _coinsPointer!.address;
+
+    await Isolate.run(() {
+      final ptr = Pointer.fromAddress(address);
+      final count = wow_ffi.getAllCoinsSize(ptr.cast());
+      for (int i = 0; i < count; i++) {
+        if (keyImage ==
+            wow_ffi.getKeyImageForCoinsInfo(
+              wow_ffi.getCoinInfoPointer(ptr.cast(), i),
+            )) {
+          wow_ffi.freezeCoin(ptr.cast(), index: i);
+          return;
+        }
       }
-    }
+    });
 
     throw Exception(
       "Can't freeze utxo for the gen keyImage if it cannot be found. *points at temple*",
@@ -1108,16 +1239,21 @@ class WowneroWallet extends Wallet {
       throw Exception("Attempted thaw of empty keyImage.");
     }
 
-    final count = wow_ffi.getAllCoinsSize(_coinsPointer!);
-    for (int i = 0; i < count; i++) {
-      if (keyImage ==
-          wow_ffi.getKeyImageForCoinsInfo(
-            wow_ffi.getCoinInfoPointer(_coinsPointer!, i),
-          )) {
-        wow_ffi.thawCoin(_coinsPointer!, index: i);
-        return;
+    final address = _coinsPointer!.address;
+
+    await Isolate.run(() {
+      final ptr = Pointer.fromAddress(address);
+      final count = wow_ffi.getAllCoinsSize(ptr.cast());
+      for (int i = 0; i < count; i++) {
+        if (keyImage ==
+            wow_ffi.getKeyImageForCoinsInfo(
+              wow_ffi.getCoinInfoPointer(ptr.cast(), i),
+            )) {
+          wow_ffi.thawCoin(ptr.cast(), index: i);
+          return;
+        }
       }
-    }
+    });
 
     throw Exception(
       "Can't thaw utxo for the gen keyImage if it cannot be found. *points at temple*",
@@ -1298,7 +1434,7 @@ class WowneroWallet extends Wallet {
   // }
 
   @override
-  BigInt? amountFromString(String value) {
+  Future<BigInt?> amountFromString(String value) async {
     try {
       // not sure what protections or validation is done internally
       // so lets do some extra for now
@@ -1306,7 +1442,9 @@ class WowneroWallet extends Wallet {
 
       // if that parse succeeded the following should produce a valid result
 
-      return BigInt.from(wow_ffi.amountFromString(value));
+      return BigInt.from(
+        await Isolate.run(() => wow_ffi.amountFromString(value)),
+      );
     } catch (e, s) {
       Logging.log?.w(
         "amountFromString failed to parse \"$value\"",
@@ -1318,13 +1456,22 @@ class WowneroWallet extends Wallet {
   }
 
   @override
-  String getPassword() {
-    return wow_ffi.getWalletPassword(_getWalletPointer());
+  Future<String> getPassword() async {
+    final address = _getWalletPointer().address;
+    return await Isolate.run(() {
+      return wow_ffi.getWalletPassword(Pointer.fromAddress(address));
+    });
   }
 
   @override
-  void changePassword(String newPassword) {
-    wow_ffi.setWalletPassword(_getWalletPointer(), password: newPassword);
+  Future<void> changePassword(String newPassword) async {
+    final address = _getWalletPointer().address;
+    await Isolate.run(() {
+      return wow_ffi.setWalletPassword(
+        Pointer.fromAddress(address),
+        password: newPassword,
+      );
+    });
   }
 
   @override
@@ -1341,7 +1488,7 @@ class WowneroWallet extends Wallet {
   Future<void> close({bool save = false}) async {
     if (isClosed() || isClosing) return;
     isClosing = true;
-    stopSyncing();
+    await stopSyncing();
     stopListeners();
 
     if (save) {
