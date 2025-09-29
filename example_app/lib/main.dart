@@ -63,79 +63,82 @@ class _ExampleAppState extends State<ExampleApp> {
         title: const Text('cs_monero example app'),
         centerTitle: true,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              children: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<dynamic>(
-                        builder: (context) => const CreateWalletView(),
-                      ),
-                    );
-                  },
-                  child: const Text("Create a wallet"),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<dynamic>(
-                        builder: (context) => const OpenWalletView(),
-                      ),
-                    );
-                  },
-                  child: const Text("Open a wallet"),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<dynamic>(
-                        builder: (context) => const RestoreFromSeedView(),
-                      ),
-                    );
-                  },
-                  child: const Text("Restore from seed"),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<dynamic>(
-                        builder: (context) => const RestoreFromKeysView(),
-                      ),
-                    );
-                  },
-                  child: const Text("Restore from keys"),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<dynamic>(
-                        builder: (context) =>
-                            const RestoreDeterministicFromSpendKeyView(),
-                      ),
-                    );
-                  },
-                  child: const Text("Restore deterministic from spend key"),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<dynamic>(
-                        builder: (context) => const CreateViewOnlyWalletView(),
-                      ),
-                    );
-                  },
-                  child: const Text("Create View Only wallet"),
-                ),
-              ],
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<dynamic>(
+                          builder: (context) => const CreateWalletView(),
+                        ),
+                      );
+                    },
+                    child: const Text("Create a wallet"),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<dynamic>(
+                          builder: (context) => const OpenWalletView(),
+                        ),
+                      );
+                    },
+                    child: const Text("Open a wallet"),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<dynamic>(
+                          builder: (context) => const RestoreFromSeedView(),
+                        ),
+                      );
+                    },
+                    child: const Text("Restore from seed"),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<dynamic>(
+                          builder: (context) => const RestoreFromKeysView(),
+                        ),
+                      );
+                    },
+                    child: const Text("Restore from keys"),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<dynamic>(
+                          builder: (context) =>
+                              const RestoreDeterministicFromSpendKeyView(),
+                        ),
+                      );
+                    },
+                    child: const Text("Restore deterministic from spend key"),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<dynamic>(
+                          builder: (context) =>
+                              const CreateViewOnlyWalletView(),
+                        ),
+                      );
+                    },
+                    child: const Text("Create View Only wallet"),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Text(
-            'Running on: $_platformVersion',
-          ),
-        ],
+            Text(
+              'Running on: $_platformVersion',
+            ),
+          ],
+        ),
       ),
     );
   }

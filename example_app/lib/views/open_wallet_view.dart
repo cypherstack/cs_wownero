@@ -68,6 +68,7 @@ class _OpenWalletViewState extends State<OpenWalletView> {
                         }
                         showAdaptiveDialog<void>(
                           context: context,
+                          barrierDismissible: true,
                           builder: (context) => OpenWalletDialog(
                             type: type,
                             name: actualName,
