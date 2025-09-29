@@ -97,26 +97,29 @@ void main(List<String> args) async {
           recursive: true,
         );
 
+      // ios and macos only have 1 triple currently
+      final triple = _getTriples(platform).first;
+
       final String xmrDylib;
       final String wowDylib;
       if (platform == "ios") {
         xmrDylib = "$envMoneroCDir"
             "${Platform.pathSeparator}release"
             "${Platform.pathSeparator}monero"
-            "${Platform.pathSeparator}host-apple-ios_libwallet2_api_c.dylib";
+            "${Platform.pathSeparator}${triple}_libwallet2_api_c.dylib";
         wowDylib = "$envMoneroCDir"
             "${Platform.pathSeparator}release"
             "${Platform.pathSeparator}wownero"
-            "${Platform.pathSeparator}host-apple-ios_libwallet2_api_c.dylib";
+            "${Platform.pathSeparator}${triple}_libwallet2_api_c.dylib";
       } else {
         xmrDylib = "$envMoneroCDir"
             "${Platform.pathSeparator}release"
             "${Platform.pathSeparator}monero"
-            "${Platform.pathSeparator}host-apple-darwin_libwallet2_api_c.dylib";
+            "${Platform.pathSeparator}${triple}_libwallet2_api_c.dylib";
         wowDylib = "$envMoneroCDir"
             "${Platform.pathSeparator}release"
             "${Platform.pathSeparator}wownero"
-            "${Platform.pathSeparator}host-apple-darwin_libwallet2_api_c.dylib";
+            "${Platform.pathSeparator}${triple}_libwallet2_api_c.dylib";
       }
 
       await createFramework(
@@ -259,10 +262,10 @@ List<String> _getTriples(String platform) {
       ];
 
     case "ios":
-      return ["host-apple-ios"];
+      return ["aarch64-apple-ios"];
 
     case "macos":
-      return ["host-apple-darwin"];
+      return ["aarch64-apple-darwin"];
 
     case "linux":
       return ["x86_64-linux-gnu"];
