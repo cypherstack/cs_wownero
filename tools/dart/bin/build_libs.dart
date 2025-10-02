@@ -183,22 +183,6 @@ void main(List<String> args) async {
         ],
       );
 
-      final polyPath = "$envMoneroCDir"
-          "${Platform.pathSeparator}release"
-          "${Platform.pathSeparator}wownero"
-          "${Platform.pathSeparator}x86_64-w64-mingw32_libpolyseed.dll";
-      if (File("$polyPath.xz").existsSync()) {
-        await runAsync("unxz", ["-f", "$polyPath.xz"]);
-      }
-      await runAsync(
-        "cp",
-        [
-          polyPath,
-          "${dir.path}"
-              "${Platform.pathSeparator}libpolyseed.dll",
-        ],
-      );
-
       final sspPath = "$envMoneroCDir"
           "${Platform.pathSeparator}release"
           "${Platform.pathSeparator}wownero"
