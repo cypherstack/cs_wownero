@@ -37,5 +37,17 @@ void main() async {
     // Apply patches
     await runAsync('./apply_patches.sh', ['monero']);
     await runAsync('./apply_patches.sh', ['wownero']);
+
+    // Apply patch to fix wownero build.
+    final wowneroDir = Directory('$envMoneroCDir/wownero');
+    Directory.current = wowneroDir;
+    final patchPath = '$envProjectDir/patches/device_io_dummy-condition-variables.patch';
+
+    l('Applying device_io_dummy-condition-variables.patch to wownero...');
+    await runAsync('git', [
+      'apply',
+      '--whitespace=nowarn',
+      patchPath,
+    ]);
   }
 }
