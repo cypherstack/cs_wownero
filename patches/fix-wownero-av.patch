@@ -1,0 +1,76 @@
+diff --git a/wownero_libwallet2_api_c/src/main/cpp/wallet2_api_c.cpp b/wownero_libwallet2_api_c/src/main/cpp/wallet2_api_c.cpp
+index 44887f6..375988c 100644
+--- a/wownero_libwallet2_api_c/src/main/cpp/wallet2_api_c.cpp
++++ b/wownero_libwallet2_api_c/src/main/cpp/wallet2_api_c.cpp
+@@ -2162,13 +2162,6 @@ uint64_t WOWNERO_WalletManager_networkDifficulty(void* wm_ptr) {
+     return wm->networkDifficulty();
+     DEBUG_END()
+ }
+-//     virtual double miningHashRate() = 0;
+-double WOWNERO_WalletManager_miningHashRate(void* wm_ptr) {
+-    DEBUG_START()
+-    Monero::WalletManager *wm = reinterpret_cast<Monero::WalletManager*>(wm_ptr);
+-    return wm->miningHashRate();
+-    DEBUG_END()
+-}
+ //     virtual uint64_t blockTarget() = 0;
+ uint64_t WOWNERO_WalletManager_blockTarget(void* wm_ptr) {
+     DEBUG_START()
+@@ -2183,20 +2176,6 @@ bool WOWNERO_WalletManager_isMining(void* wm_ptr) {
+     return wm->isMining();
+     DEBUG_END()
+ }
+-//     virtual bool startMining(const std::string &address, uint32_t threads = 1, bool background_mining = false, bool ignore_battery = true) = 0;
+-bool WOWNERO_WalletManager_startMining(void* wm_ptr, const char* address, uint32_t threads, bool backgroundMining, bool ignoreBattery) {
+-    DEBUG_START()
+-    Monero::WalletManager *wm = reinterpret_cast<Monero::WalletManager*>(wm_ptr);
+-    return wm->startMining(std::string(address), threads, backgroundMining, ignoreBattery);
+-    DEBUG_END()
+-}
+-//     virtual bool stopMining() = 0;
+-bool WOWNERO_WalletManager_stopMining(void* wm_ptr, const char* address) {
+-    DEBUG_START()
+-    Monero::WalletManager *wm = reinterpret_cast<Monero::WalletManager*>(wm_ptr);
+-    return wm->stopMining();
+-    DEBUG_END()
+-}
+ //     virtual std::string resolveOpenAlias(const std::string &address, bool &dnssec_valid) const = 0;
+ const char* WOWNERO_WalletManager_resolveOpenAlias(void* wm_ptr, const char* address, bool dnssec_valid) {
+     DEBUG_START()
+diff --git a/wownero_libwallet2_api_c/src/main/cpp/wallet2_api_c.h b/wownero_libwallet2_api_c/src/main/cpp/wallet2_api_c.h
+index f58adcd..81936fc 100644
+--- a/wownero_libwallet2_api_c/src/main/cpp/wallet2_api_c.h
++++ b/wownero_libwallet2_api_c/src/main/cpp/wallet2_api_c.h
+@@ -933,16 +933,10 @@ extern ADDAPI uint64_t WOWNERO_WalletManager_blockchainHeight(void* wm_ptr);
+ extern ADDAPI uint64_t WOWNERO_WalletManager_blockchainTargetHeight(void* wm_ptr);
+ //     virtual uint64_t networkDifficulty() = 0;
+ extern ADDAPI uint64_t WOWNERO_WalletManager_networkDifficulty(void* wm_ptr);
+-//     virtual double miningHashRate() = 0;
+-extern ADDAPI double WOWNERO_WalletManager_miningHashRate(void* wm_ptr);
+ //     virtual uint64_t blockTarget() = 0;
+ extern ADDAPI uint64_t WOWNERO_WalletManager_blockTarget(void* wm_ptr);
+ //     virtual bool isMining() = 0;
+ extern ADDAPI bool WOWNERO_WalletManager_isMining(void* wm_ptr);
+-//     virtual bool startMining(const std::string &address, uint32_t threads = 1, bool background_mining = false, bool ignore_battery = true) = 0;
+-extern ADDAPI bool WOWNERO_WalletManager_startMining(void* wm_ptr, const char* address, uint32_t threads, bool backgroundMining, bool ignoreBattery);
+-//     virtual bool stopMining() = 0;
+-extern ADDAPI bool WOWNERO_WalletManager_stopMining(void* wm_ptr, const char* address);
+ //     virtual std::string resolveOpenAlias(const std::string &address, bool &dnssec_valid) const = 0;
+ extern ADDAPI const char* WOWNERO_WalletManager_resolveOpenAlias(void* wm_ptr, const char* address, bool dnssec_valid);
+ //     static std::tuple<bool, std::string, std::string, std::string, std::string> checkUpdates(
+diff --git a/wownero_libwallet2_api_c/wownero_libwallet2_api_c.exp b/wownero_libwallet2_api_c/wownero_libwallet2_api_c.exp
+index 10a407f..30f2039 100644
+--- a/wownero_libwallet2_api_c/wownero_libwallet2_api_c.exp
++++ b/wownero_libwallet2_api_c/wownero_libwallet2_api_c.exp
+@@ -252,11 +252,7 @@ _WOWNERO_WalletManager_setDaemonAddress
+ _WOWNERO_WalletManager_blockchainHeight
+ _WOWNERO_WalletManager_blockchainTargetHeight
+ _WOWNERO_WalletManager_networkDifficulty
+-_WOWNERO_WalletManager_miningHashRate
+ _WOWNERO_WalletManager_blockTarget
+-_WOWNERO_WalletManager_isMining
+-_WOWNERO_WalletManager_startMining
+-_WOWNERO_WalletManager_stopMining
+ _WOWNERO_WalletManager_resolveOpenAlias
+ _WOWNERO_WalletManager_setProxy
+ _WOWNERO_WalletManagerFactory_getWalletManager
