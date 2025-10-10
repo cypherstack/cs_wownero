@@ -9,6 +9,7 @@ analyzer:
     - "crypto_plugins/**"
     - "bin/cache/**"
     - "lib/generated_plugin_registrant.dart"
+    - "build/monero_c/impls/monero.dart/**"
 
   # For more information see:
   # https://dart.dev/guides/language/analysis-options#enabling-additional-type-checks

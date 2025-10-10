@@ -19,8 +19,6 @@ void main() async {
     await runAsync('git', [
       'clone',
       kMoneroCRepo,
-      '--branch',
-      'apple-frameworks',
     ]);
 
     // Change directory to MONERO_C_DIR
@@ -29,18 +27,6 @@ void main() async {
     // Checkout specific commit and reset
     await runAsync('git', ['checkout', kMoneroCHash]);
     await runAsync('git', ['reset', '--hard']);
-
-    // Configure submodules
-    await runAsync('git', [
-      'config',
-      'submodule.libs/wownero.url',
-      'https://git.cypherstack.com/cypherstack/wownero',
-    ]);
-    await runAsync('git', [
-      'config',
-      'submodule.libs/wownero-seed.url',
-      'https://git.cypherstack.com/cypherstack/wownero-seed',
-    ]);
 
     // Update submodules
     await runAsync(
@@ -51,5 +37,34 @@ void main() async {
     // Apply patches
     await runAsync('./apply_patches.sh', ['monero']);
     await runAsync('./apply_patches.sh', ['wownero']);
+
+    // Apply AV patches to monero_c.
+    final moneroAVPatchPath = '$envProjectDir/patches/fix-monero-av.patch';
+    l('Applying fix-monero-av.patch to monero_c...');
+    await runAsync('git', [
+      'apply',
+      '--whitespace=nowarn',
+      moneroAVPatchPath,
+    ]);
+
+    final wowneroAVPatchPath = '$envProjectDir/patches/fix-wownero-av.patch';
+    l('Applying fix-wownero-av.patch to monero_c...');
+    await runAsync('git', [
+      'apply',
+      '--whitespace=nowarn',
+      wowneroAVPatchPath,
+    ]);
+
+    // Apply patch to fix wownero build.
+    final wowneroDir = Directory('$envMoneroCDir/wownero');
+    Directory.current = wowneroDir;
+    final wowPatchPath = '$envProjectDir/patches/device_io_dummy-condition-variables.patch';
+
+    l('Applying device_io_dummy-condition-variables.patch to wownero...');
+    await runAsync('git', [
+      'apply',
+      '--whitespace=nowarn',
+      wowPatchPath,
+    ]);
   }
 }

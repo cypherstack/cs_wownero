@@ -2741,39 +2741,6 @@ class FfiWowneroC {
       _WOWNERO_Wallet_daemonBlockChainHeightPtr.asFunction<
           int Function(ffi.Pointer<ffi.Void>)>();
 
-  int WOWNERO_Wallet_daemonBlockChainHeight_cached(
-    ffi.Pointer<ffi.Void> wallet_ptr,
-  ) {
-    return _WOWNERO_Wallet_daemonBlockChainHeight_cached(
-      wallet_ptr,
-    );
-  }
-
-  late final _WOWNERO_Wallet_daemonBlockChainHeight_cachedPtr =
-      _lookup<ffi.NativeFunction<ffi.Uint64 Function(ffi.Pointer<ffi.Void>)>>(
-          'WOWNERO_Wallet_daemonBlockChainHeight_cached');
-  late final _WOWNERO_Wallet_daemonBlockChainHeight_cached =
-      _WOWNERO_Wallet_daemonBlockChainHeight_cachedPtr.asFunction<
-          int Function(ffi.Pointer<ffi.Void>)>();
-
-  void WOWNERO_Wallet_daemonBlockChainHeight_runThread(
-    ffi.Pointer<ffi.Void> wallet_ptr,
-    int seconds,
-  ) {
-    return _WOWNERO_Wallet_daemonBlockChainHeight_runThread(
-      wallet_ptr,
-      seconds,
-    );
-  }
-
-  late final _WOWNERO_Wallet_daemonBlockChainHeight_runThreadPtr = _lookup<
-          ffi
-          .NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>, ffi.Int)>>(
-      'WOWNERO_Wallet_daemonBlockChainHeight_runThread');
-  late final _WOWNERO_Wallet_daemonBlockChainHeight_runThread =
-      _WOWNERO_Wallet_daemonBlockChainHeight_runThreadPtr.asFunction<
-          void Function(ffi.Pointer<ffi.Void>, int)>();
-
   int WOWNERO_Wallet_daemonBlockChainTargetHeight(
     ffi.Pointer<ffi.Void> wallet_ptr,
   ) {
@@ -4535,21 +4502,6 @@ class FfiWowneroC {
       _WOWNERO_WalletManager_networkDifficultyPtr.asFunction<
           int Function(ffi.Pointer<ffi.Void>)>();
 
-  double WOWNERO_WalletManager_miningHashRate(
-    ffi.Pointer<ffi.Void> wm_ptr,
-  ) {
-    return _WOWNERO_WalletManager_miningHashRate(
-      wm_ptr,
-    );
-  }
-
-  late final _WOWNERO_WalletManager_miningHashRatePtr =
-      _lookup<ffi.NativeFunction<ffi.Double Function(ffi.Pointer<ffi.Void>)>>(
-          'WOWNERO_WalletManager_miningHashRate');
-  late final _WOWNERO_WalletManager_miningHashRate =
-      _WOWNERO_WalletManager_miningHashRatePtr.asFunction<
-          double Function(ffi.Pointer<ffi.Void>)>();
-
   int WOWNERO_WalletManager_blockTarget(
     ffi.Pointer<ffi.Void> wm_ptr,
   ) {
@@ -4579,53 +4531,6 @@ class FfiWowneroC {
   late final _WOWNERO_WalletManager_isMining =
       _WOWNERO_WalletManager_isMiningPtr.asFunction<
           bool Function(ffi.Pointer<ffi.Void>)>();
-
-  bool WOWNERO_WalletManager_startMining(
-    ffi.Pointer<ffi.Void> wm_ptr,
-    ffi.Pointer<ffi.Char> address,
-    int threads,
-    bool backgroundMining,
-    bool ignoreBattery,
-  ) {
-    return _WOWNERO_WalletManager_startMining(
-      wm_ptr,
-      address,
-      threads,
-      backgroundMining,
-      ignoreBattery,
-    );
-  }
-
-  late final _WOWNERO_WalletManager_startMiningPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Bool Function(
-              ffi.Pointer<ffi.Void>,
-              ffi.Pointer<ffi.Char>,
-              ffi.Uint32,
-              ffi.Bool,
-              ffi.Bool)>>('WOWNERO_WalletManager_startMining');
-  late final _WOWNERO_WalletManager_startMining =
-      _WOWNERO_WalletManager_startMiningPtr.asFunction<
-          bool Function(
-              ffi.Pointer<ffi.Void>, ffi.Pointer<ffi.Char>, int, bool, bool)>();
-
-  bool WOWNERO_WalletManager_stopMining(
-    ffi.Pointer<ffi.Void> wm_ptr,
-    ffi.Pointer<ffi.Char> address,
-  ) {
-    return _WOWNERO_WalletManager_stopMining(
-      wm_ptr,
-      address,
-    );
-  }
-
-  late final _WOWNERO_WalletManager_stopMiningPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Bool Function(ffi.Pointer<ffi.Void>,
-              ffi.Pointer<ffi.Char>)>>('WOWNERO_WalletManager_stopMining');
-  late final _WOWNERO_WalletManager_stopMining =
-      _WOWNERO_WalletManager_stopMiningPtr.asFunction<
-          bool Function(ffi.Pointer<ffi.Void>, ffi.Pointer<ffi.Char>)>();
 
   ffi.Pointer<ffi.Char> WOWNERO_WalletManager_resolveOpenAlias(
     ffi.Pointer<ffi.Void> wm_ptr,

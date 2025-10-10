@@ -19,7 +19,8 @@ run `melos bootstrap` (or `melos bs`) in this root directory to get started.
 ## Build libraries from source (optional but recommended)
 By default, `cs_monero_flutter_libs` will automatically include and download the
 appropriate platform-specific binaries when you run `flutter pub get`.  Use
-these at your own risk.  To build the libraries yourself:
+these at your own risk.  For windows building see building notes before 
+proceeding.  To build the libraries yourself:
 
 1. Add this repo as a git submodule to your project and add `cs_monero`and 
    `cs_monero_flutter_libs` to your pubspec.yaml as relative/path dependencies. 
@@ -38,9 +39,10 @@ these at your own risk.  To build the libraries yourself:
 - This repo's build scripts are just wrappers around `monero_c`'s build scripts.
   For details and requirements see https://github.com/MrCyjaneK/monero_c/
 - To do a clean/fresh build, just the delete the top level `build` dir.
-- Windows: Builds have been tested on Windows 11 with Ubuntu 20.04 in WSL2.  Do 
+- Windows: Builds have been tested on Windows 11 with Ubuntu 24.04 in WSL2.  Do 
   not install Flutter via Snap, follow one of these guides instead:
   https://docs.flutter.dev/get-started/install/linux/desktop
+- Windows: Due to path handling in a makefile in monero_c, the WSL `PATH` cannot contain spaces or brackets.  To work around this, run `melos prepareMoneroC` and then `export PATH=$(echo "$PATH" | tr ':' '\n' | grep -v '[ ()]' | paste -sd:)` before running `melos build:windows`.
 
 ## TODO
 - Tests? (at least what is possible)
