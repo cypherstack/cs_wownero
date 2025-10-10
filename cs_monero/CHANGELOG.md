@@ -1,3 +1,7 @@
+## 1.1.1
+
+ - **FIX**: revert async. ([5e905925](https://github.com/cypherstack/cs_monero/commit/5e905925d799932e3097fc766b996455c5497908))
+
 ## 1.1.0
 
 - Update prebuilt binaries.
