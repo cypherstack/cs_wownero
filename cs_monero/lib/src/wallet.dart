@@ -53,64 +53,45 @@ abstract class Wallet {
   BigInt? _lastBalanceUnlocked;
   BigInt? _lastBalanceFull;
 
-  // TODO handle this differently when time is available. Band-aid it is for now.
-  static const _timeout = Duration(seconds: 2);
   void _poll() async {
     Logging.log?.d("Polling");
-    try {
-      final full = await getBalance().timeout(_timeout);
-      final unlocked = await getUnlockedBalance().timeout(_timeout);
-      if (unlocked != _lastBalanceUnlocked || full != _lastBalanceFull) {
-        Logging.log?.d("listener.onBalancesChanged");
-        for (final listener in getListeners()) {
-          listener.onBalancesChanged
-              ?.call(newBalance: full, newUnlockedBalance: unlocked);
-        }
-      }
-      _lastBalanceUnlocked = unlocked;
-      _lastBalanceFull = full;
-    } catch (error, stackTrace) {
+
+    final full = getBalance();
+    final unlocked = getUnlockedBalance();
+    if (unlocked != _lastBalanceUnlocked || full != _lastBalanceFull) {
+      Logging.log?.d("listener.onBalancesChanged");
       for (final listener in getListeners()) {
-        listener.onError?.call(error, stackTrace);
+        listener.onBalancesChanged
+            ?.call(newBalance: full, newUnlockedBalance: unlocked);
       }
     }
-    try {
-      final nodeHeight = await getDaemonHeight().timeout(_timeout);
-      final heightChanged = nodeHeight != _lastDaemonHeight;
-      if (heightChanged) {
-        Logging.log?.d("listener.onNewBlock");
-        for (final listener in getListeners()) {
-          listener.onNewBlock?.call(nodeHeight);
-        }
-      }
-      _lastDaemonHeight = nodeHeight;
+    _lastBalanceUnlocked = unlocked;
+    _lastBalanceFull = full;
 
-      try {
-        final currentSyncingHeight =
-            await getCurrentWalletSyncingHeight().timeout(_timeout);
-        if (currentSyncingHeight >= 0 &&
-            currentSyncingHeight <= nodeHeight &&
-            (heightChanged || currentSyncingHeight != _lastSyncHeight)) {
-          Logging.log?.d("listener.onSyncingUpdate");
-          for (final listener in getListeners()) {
-            listener.onSyncingUpdate?.call(
-              syncHeight: currentSyncingHeight,
-              nodeHeight: nodeHeight,
-            );
-          }
-        }
-
-        _lastSyncHeight = currentSyncingHeight;
-      } catch (error, stackTrace) {
-        for (final listener in getListeners()) {
-          listener.onError?.call(error, stackTrace);
-        }
-      }
-    } catch (error, stackTrace) {
+    final nodeHeight = getDaemonHeight();
+    final heightChanged = nodeHeight != _lastDaemonHeight;
+    if (heightChanged) {
+      Logging.log?.d("listener.onNewBlock");
       for (final listener in getListeners()) {
-        listener.onError?.call(error, stackTrace);
+        listener.onNewBlock?.call(nodeHeight);
       }
     }
+    _lastDaemonHeight = nodeHeight;
+
+    final currentSyncingHeight = getCurrentWalletSyncingHeight();
+    if (currentSyncingHeight >= 0 &&
+        currentSyncingHeight <= nodeHeight &&
+        (heightChanged || currentSyncingHeight != _lastSyncHeight)) {
+      Logging.log?.d("listener.onSyncingUpdate");
+      for (final listener in getListeners()) {
+        listener.onSyncingUpdate?.call(
+          syncHeight: currentSyncingHeight,
+          nodeHeight: nodeHeight,
+        );
+      }
+    }
+
+    _lastSyncHeight = currentSyncingHeight;
   }
 
   Timer? _autoSaveTimer;
@@ -264,12 +245,12 @@ abstract class Wallet {
   Future<void> refreshTransactions();
 
   @protected
-  Future<int> transactionCount();
+  int transactionCount();
 
   /// Returns the current block height of the wallet. Anything less than the
   /// [getDaemonHeight] value (+/- 1) likely indicates the wallet is not fully
   /// synced.
-  Future<int> getCurrentWalletSyncingHeight();
+  int getCurrentWalletSyncingHeight();
 
   /// Returns a rough height estimate for a given [date].
   int getBlockChainHeightByDate(DateTime date);
@@ -292,7 +273,7 @@ abstract class Wallet {
   // });
 
   /// Returns true if the wallet is a view only wallet.
-  Future<bool> isViewOnly();
+  bool isViewOnly();
 
   // void setDaemonConnection(DaemonConnection connection);
   // DaemonConnection getDaemonConnection();
@@ -308,33 +289,33 @@ abstract class Wallet {
   // NetworkType getNetworkType();
 
   /// Returns the location where the wallet files are stored.
-  Future<String> getPath();
+  String getPath();
 
   /// Returns the seed phrase (mnemonic) of the wallet.
-  Future<String> getSeed({String seedOffset = ""});
+  String getSeed({String seedOffset = ""});
 
   /// Returns the language of the seed phrase (mnemonic).
-  Future<String> getSeedLanguage();
+  String getSeedLanguage();
 
   /// Returns the private spend key for the wallet.
-  Future<String> getPrivateSpendKey();
+  String getPrivateSpendKey();
 
   /// Returns the private view key for the wallet.
-  Future<String> getPrivateViewKey();
+  String getPrivateViewKey();
 
   /// Returns the public spend key for the wallet.
-  Future<String> getPublicSpendKey();
+  String getPublicSpendKey();
 
   /// Returns the public view key for the wallet.
-  Future<String> getPublicViewKey();
+  String getPublicViewKey();
 
   /// Returns a receiving address given an [accountIndex] and sub[addressIndex].
   /// If the [addressIndex] is zero, the main address for the given
   /// [accountIndex] will be returned.
-  Future<Address> getAddress({int accountIndex = 0, int addressIndex = 0});
+  Address getAddress({int accountIndex = 0, int addressIndex = 0});
 
   /// Returns the current chain height as seen by the connected daemon.
-  Future<int> getDaemonHeight();
+  int getDaemonHeight();
 
   // int getDaemonMaxPeerHeight();
   // int getApproximateChainHeight();
@@ -342,16 +323,16 @@ abstract class Wallet {
   // int getHeightByDate(int year, int month, int day);
 
   /// Returns the height of the wallet used for rescanning/refreshing.
-  Future<int> getRefreshFromBlockHeight();
+  int getRefreshFromBlockHeight();
 
   /// Set the height of the wallet used for rescanning/refreshing.
-  Future<void> setRefreshFromBlockHeight(int startHeight);
+  void setRefreshFromBlockHeight(int startHeight);
 
   /// Sets the auto refresh interval and starts refreshing/syncing.
-  Future<void> startSyncing({Duration interval = const Duration(seconds: 20)});
+  void startSyncing({Duration interval = const Duration(seconds: 20)});
 
   /// Stop syncing/refreshing
-  Future<void> stopSyncing();
+  void stopSyncing();
 
   // Future<bool> rescanSpent();
 
@@ -359,10 +340,10 @@ abstract class Wallet {
   Future<bool> rescanBlockchain();
 
   /// Returns the wallet's full balance in atomic units.
-  Future<BigInt> getBalance({int accountIndex = 0});
+  BigInt getBalance({int accountIndex = 0});
 
   /// Returns the wallet's unlocked balance in atomic units.
-  Future<BigInt> getUnlockedBalance({int accountIndex = 0});
+  BigInt getUnlockedBalance({int accountIndex = 0});
 
   // Disable for now
   // List<Account> getAccounts({bool includeSubaddresses = false});
@@ -371,7 +352,7 @@ abstract class Wallet {
   // void setAccountLabel(int accountIdx, String label);
   // void setSubaddressLabel(int accountIdx, int addressIdx, String label);
 
-  Future<String> getTxKey(String txid);
+  String getTxKey(String txid);
 
   /// Returns a transaction given it's [txid]/hash
   Future<Transaction> getTx(String txid, {bool refresh = false});
@@ -465,7 +446,7 @@ abstract class Wallet {
 
   /// Convert a decimal amount string to atomic units.
   /// Returns null on invalid string format.
-  Future<BigInt?> amountFromString(String value);
+  BigInt? amountFromString(String value);
 
   // String getTxKey(String txId);
   // CheckTx checkTxKey(String txId, String txKey, String address);
@@ -517,10 +498,10 @@ abstract class Wallet {
   // void moveTo(String path);
 
   /// Returns the wallet password.
-  Future<String> getPassword();
+  String getPassword();
 
   /// Change the password of the wallet
-  Future<void> changePassword(String newPassword);
+  void changePassword(String newPassword);
 
   /// Saves the current state of the wallet to disk.
   Future<void> save();

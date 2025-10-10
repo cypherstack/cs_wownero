@@ -169,7 +169,7 @@ class _OpenWalletDialogState extends State<OpenWalletDialog> {
 
       if (mounted) {
         if (wallet != null) {
-          await wallet.startSyncing();
+          wallet.startSyncing();
           // pop dialog
           Navigator.of(context).pop();
           await Navigator.of(context).push(

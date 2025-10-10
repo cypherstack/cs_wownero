@@ -42,41 +42,25 @@ class MoneroWallet extends Wallet {
 
   // private helpers
 
-  Future<Transaction> _transactionFrom(Pointer<Void> infoPointer) async {
-    final address = infoPointer.address;
-    final walletPtrAddress = _getWalletPointer().address;
-
-    final txData = await Isolate.run(() {
-      final infoPointer = Pointer<Void>.fromAddress(address);
-
-      final txid = xmr_ffi.getTransactionInfoHash(infoPointer);
-
-      final key = xmr_ffi.getTxKey(
-        Pointer.fromAddress(walletPtrAddress),
-        txid: txid,
-      );
-
-      return Transaction(
-        displayLabel: xmr_ffi.getTransactionInfoLabel(infoPointer),
-        description: xmr_ffi.getTransactionInfoDescription(infoPointer),
-        fee: BigInt.from(xmr_ffi.getTransactionInfoFee(infoPointer)),
-        confirmations: xmr_ffi.getTransactionInfoConfirmations(infoPointer),
-        blockHeight: xmr_ffi.getTransactionInfoBlockHeight(infoPointer),
-        accountIndex: xmr_ffi.getTransactionInfoAccount(infoPointer),
-        addressIndexes: xmr_ffi.getTransactionSubaddressIndexes(infoPointer),
-        paymentId: xmr_ffi.getTransactionInfoPaymentId(infoPointer),
-        amount: BigInt.from(xmr_ffi.getTransactionInfoAmount(infoPointer)),
-        isSpend: xmr_ffi.getTransactionInfoIsSpend(infoPointer),
-        hash: txid,
-        key: key,
-        timeStamp: DateTime.fromMillisecondsSinceEpoch(
-          xmr_ffi.getTransactionInfoTimestamp(infoPointer) * 1000,
-        ),
-        minConfirms: MinConfirms.monero,
-      ).toMap();
-    });
-
-    return Transaction.fromMap(txData);
+  Transaction _transactionFrom(Pointer<Void> infoPointer) {
+    return Transaction(
+      displayLabel: xmr_ffi.getTransactionInfoLabel(infoPointer),
+      description: xmr_ffi.getTransactionInfoDescription(infoPointer),
+      fee: BigInt.from(xmr_ffi.getTransactionInfoFee(infoPointer)),
+      confirmations: xmr_ffi.getTransactionInfoConfirmations(infoPointer),
+      blockHeight: xmr_ffi.getTransactionInfoBlockHeight(infoPointer),
+      accountIndex: xmr_ffi.getTransactionInfoAccount(infoPointer),
+      addressIndexes: xmr_ffi.getTransactionSubaddressIndexes(infoPointer),
+      paymentId: xmr_ffi.getTransactionInfoPaymentId(infoPointer),
+      amount: BigInt.from(xmr_ffi.getTransactionInfoAmount(infoPointer)),
+      isSpend: xmr_ffi.getTransactionInfoIsSpend(infoPointer),
+      hash: xmr_ffi.getTransactionInfoHash(infoPointer),
+      key: getTxKey(xmr_ffi.getTransactionInfoHash(infoPointer)),
+      timeStamp: DateTime.fromMillisecondsSinceEpoch(
+        xmr_ffi.getTransactionInfoTimestamp(infoPointer) * 1000,
+      ),
+      minConfirms: MinConfirms.monero,
+    );
   }
 
   // ===========================================================================
@@ -529,15 +513,10 @@ class MoneroWallet extends Wallet {
 
   // ===========================================================================
   // special check to see if wallet exists
-  static Future<bool> isWalletExist(String path) async {
-    final address = _walletManagerPointer.address;
-    return await Isolate.run(() {
-      return xmr_wm_ffi.walletExists(
-        Pointer.fromAddress(address),
+  static bool isWalletExist(String path) => xmr_wm_ffi.walletExists(
+        _walletManagerPointer,
         path,
       );
-    });
-  }
 
   // ===========================================================================
   // === Internal overrides ====================================================
@@ -545,12 +524,7 @@ class MoneroWallet extends Wallet {
   @override
   @protected
   Future<void> refreshOutputs() async {
-    final walletPointerAddress = _getWalletPointer().address;
-    _coinsPointer = await Isolate.run(
-      () => xmr_ffi.getCoinsPointer(
-        Pointer.fromAddress(walletPointerAddress),
-      ),
-    );
+    _coinsPointer = xmr_ffi.getCoinsPointer(_getWalletPointer());
     final pointerAddress = _coinsPointer!.address;
     await Isolate.run(() {
       xmr_ffi.refreshCoins(
@@ -564,11 +538,8 @@ class MoneroWallet extends Wallet {
   @override
   @protected
   Future<void> refreshTransactions() async {
-    final walletPointerAddress = _getWalletPointer().address;
-    _transactionHistoryPointer = await Isolate.run(
-      () => xmr_ffi.getTransactionHistoryPointer(
-        Pointer.fromAddress(walletPointerAddress),
-      ),
+    _transactionHistoryPointer = xmr_ffi.getTransactionHistoryPointer(
+      _getWalletPointer(),
     );
     final pointerAddress = _transactionHistoryPointer!.address;
 
@@ -583,27 +554,16 @@ class MoneroWallet extends Wallet {
 
   @override
   @protected
-  Future<int> transactionCount() async {
-    final pointerAddress = _transactionHistoryPointer!.address;
-    return await Isolate.run(() {
-      return xmr_ffi.getTransactionHistoryCount(
-        Pointer.fromAddress(pointerAddress),
+  int transactionCount() => xmr_ffi.getTransactionHistoryCount(
+        _transactionHistoryPointer!,
       );
-    });
-  }
 
   // ===========================================================================
   // === Overrides =============================================================
 
   @override
-  Future<int> getCurrentWalletSyncingHeight() async {
-    final walletPointerAddress = _getWalletPointer().address;
-    return await Isolate.run(() {
-      return xmr_ffi.getWalletBlockChainHeight(
-        Pointer.fromAddress(walletPointerAddress),
-      );
-    });
-  }
+  int getCurrentWalletSyncingHeight() =>
+      xmr_ffi.getWalletBlockChainHeight(_getWalletPointer());
 
   @override
   int getBlockChainHeightByDate(DateTime date) {
@@ -663,11 +623,9 @@ class MoneroWallet extends Wallet {
   // }
 
   @override
-  Future<bool> isViewOnly() async {
-    final walletPointerAddress = _getWalletPointer().address;
-    return await Isolate.run(() {
-      return xmr_ffi.isWatchOnly(Pointer.fromAddress(walletPointerAddress));
-    });
+  bool isViewOnly() {
+    final isWatchOnly = xmr_ffi.isWatchOnly(_getWalletPointer());
+    return isWatchOnly;
   }
 
   // @override
@@ -690,8 +648,8 @@ class MoneroWallet extends Wallet {
     // As such, we'll just do an approximation and assume (probably wrongly so)
     // that current sync/scan height and daemon height calls will return sane
     // values.
-    final current = await getCurrentWalletSyncingHeight();
-    final daemonHeight = await getDaemonHeight();
+    final current = getCurrentWalletSyncingHeight();
+    final daemonHeight = getDaemonHeight();
 
     // if difference is less than an arbitrary low but non zero value, then make
     // the call to `Wallet_synchronized`
@@ -707,96 +665,61 @@ class MoneroWallet extends Wallet {
   }
 
   @override
-  Future<String> getPath() async {
-    final walletPointerAddress = _getWalletPointer().address;
-    return await Isolate.run(() {
-      return xmr_ffi.getWalletPath(Pointer.fromAddress(walletPointerAddress));
-    });
+  String getPath() {
+    final path = xmr_ffi.getWalletPath(_getWalletPointer());
+    return path;
   }
 
   @override
-  Future<String> getSeed({String seedOffset = ""}) async {
-    final walletPointerAddress = _getWalletPointer().address;
-
-    return await Isolate.run(() {
-      final polySeed = xmr_ffi.getWalletPolyseed(
-        Pointer.fromAddress(walletPointerAddress),
-        passphrase: seedOffset,
-      );
-      if (polySeed != "") {
-        return polySeed;
-      }
-
-      final legacy = xmr_ffi.getWalletSeed(
-        Pointer.fromAddress(walletPointerAddress),
-        seedOffset: seedOffset,
-      );
-      return legacy;
-    });
+  String getSeed({String seedOffset = ""}) {
+    final polySeed = xmr_ffi.getWalletPolyseed(
+      _getWalletPointer(),
+      passphrase: seedOffset,
+    );
+    if (polySeed != "") {
+      return polySeed;
+    }
+    final legacy = xmr_ffi.getWalletSeed(
+      _getWalletPointer(),
+      seedOffset: seedOffset,
+    );
+    return legacy;
   }
 
   @override
-  Future<String> getSeedLanguage() async {
-    final walletPointerAddress = _getWalletPointer().address;
-    return await Isolate.run(() {
-      return xmr_ffi
-          .getWalletSeedLanguage(Pointer.fromAddress(walletPointerAddress));
-    });
+  String getSeedLanguage() {
+    final language = xmr_ffi.getWalletSeedLanguage(_getWalletPointer());
+    return language;
   }
 
   @override
-  Future<String> getPrivateSpendKey() async {
-    final walletPointerAddress = _getWalletPointer().address;
-    return await Isolate.run(() {
-      return xmr_ffi
-          .getWalletSecretSpendKey(Pointer.fromAddress(walletPointerAddress));
-    });
+  String getPrivateSpendKey() {
+    return xmr_ffi.getWalletSecretSpendKey(_getWalletPointer());
   }
 
   @override
-  Future<String> getPrivateViewKey() async {
-    final walletPointerAddress = _getWalletPointer().address;
-    return await Isolate.run(() {
-      return xmr_ffi
-          .getWalletSecretViewKey(Pointer.fromAddress(walletPointerAddress));
-    });
+  String getPrivateViewKey() {
+    return xmr_ffi.getWalletSecretViewKey(_getWalletPointer());
   }
 
   @override
-  Future<String> getPublicSpendKey() async {
-    final walletPointerAddress = _getWalletPointer().address;
-    return await Isolate.run(() {
-      return xmr_ffi
-          .getWalletPublicSpendKey(Pointer.fromAddress(walletPointerAddress));
-    });
+  String getPublicSpendKey() {
+    return xmr_ffi.getWalletPublicSpendKey(_getWalletPointer());
   }
 
   @override
-  Future<String> getPublicViewKey() async {
-    final walletPointerAddress = _getWalletPointer().address;
-    return await Isolate.run(() {
-      return xmr_ffi
-          .getWalletPublicViewKey(Pointer.fromAddress(walletPointerAddress));
-    });
+  String getPublicViewKey() {
+    return xmr_ffi.getWalletPublicViewKey(_getWalletPointer());
   }
 
   @override
-  Future<Address> getAddress({
-    int accountIndex = 0,
-    int addressIndex = 0,
-  }) async {
-    final walletPointerAddress = _getWalletPointer().address;
-
-    final addressValue = await Isolate.run(() {
-      return xmr_ffi.getWalletAddress(
-        Pointer.fromAddress(walletPointerAddress),
+  Address getAddress({int accountIndex = 0, int addressIndex = 0}) {
+    final address = Address(
+      value: xmr_ffi.getWalletAddress(
+        _getWalletPointer(),
         accountIndex: accountIndex,
         addressIndex: addressIndex,
-      );
-    });
-
-    final address = Address(
-      value: addressValue,
+      ),
       account: accountIndex,
       index: addressIndex,
     );
@@ -805,60 +728,37 @@ class MoneroWallet extends Wallet {
   }
 
   @override
-  Future<int> getDaemonHeight() async {
-    final address = _getWalletPointer().address;
-    return await Isolate.run(() {
-      return xmr_ffi.getDaemonBlockChainHeight(Pointer.fromAddress(address));
-    });
+  int getDaemonHeight() {
+    return xmr_ffi.getDaemonBlockChainHeight(_getWalletPointer());
   }
 
   @override
-  Future<int> getRefreshFromBlockHeight() async {
-    final address = _getWalletPointer().address;
-    return await Isolate.run(() {
-      return xmr_ffi.getWalletRefreshFromBlockHeight(
-        Pointer.fromAddress(address),
-      );
-    });
+  int getRefreshFromBlockHeight() =>
+      xmr_ffi.getWalletRefreshFromBlockHeight(_getWalletPointer());
+
+  @override
+  void setRefreshFromBlockHeight(int startHeight) {
+    xmr_ffi.setWalletRefreshFromBlockHeight(
+      _getWalletPointer(),
+      refreshFromBlockHeight: startHeight,
+    );
   }
 
   @override
-  Future<void> setRefreshFromBlockHeight(int startHeight) async {
-    final address = _getWalletPointer().address;
-    await Isolate.run(() {
-      xmr_ffi.setWalletRefreshFromBlockHeight(
-        Pointer.fromAddress(address),
-        refreshFromBlockHeight: startHeight,
-      );
-    });
-  }
-
-  @override
-  Future<void> startSyncing({
-    Duration interval = const Duration(seconds: 10),
-  }) async {
-    final address = _getWalletPointer().address;
+  void startSyncing({Duration interval = const Duration(seconds: 10)}) {
     // 10 seconds seems to be the default in monero core
-    await Isolate.run(() {
-      xmr_ffi.setWalletAutoRefreshInterval(
-        Pointer.fromAddress(address),
-        millis: interval.inMilliseconds,
-      );
-      xmr_ffi.refreshWalletAsync(Pointer.fromAddress(address));
-
-      xmr_ffi.startWalletRefresh(Pointer.fromAddress(address));
-    });
+    xmr_ffi.setWalletAutoRefreshInterval(
+      _getWalletPointer(),
+      millis: interval.inMilliseconds,
+    );
+    xmr_ffi.refreshWalletAsync(_getWalletPointer());
+    xmr_ffi.startWalletRefresh(_getWalletPointer());
   }
 
   @override
-  Future<void> stopSyncing() async {
-    final address = _getWalletPointer().address;
-    await Isolate.run(() {
-      xmr_ffi.pauseWalletRefresh(Pointer.fromAddress(address));
-    });
-    await Isolate.run(() {
-      xmr_ffi.stopWallet(Pointer.fromAddress(address));
-    });
+  void stopSyncing() {
+    xmr_ffi.pauseWalletRefresh(_getWalletPointer());
+    xmr_ffi.stopWallet(_getWalletPointer());
   }
 
   // /// returns true on success
@@ -882,28 +782,20 @@ class MoneroWallet extends Wallet {
   }
 
   @override
-  Future<BigInt> getBalance({int accountIndex = 0}) async {
-    final address = _getWalletPointer().address;
-    return BigInt.from(
-      xmr_ffi.getWalletBalance(
-        Pointer.fromAddress(address),
-        accountIndex: accountIndex,
-      ),
-    );
-  }
+  BigInt getBalance({int accountIndex = 0}) => BigInt.from(
+        xmr_ffi.getWalletBalance(
+          _getWalletPointer(),
+          accountIndex: accountIndex,
+        ),
+      );
 
   @override
-  Future<BigInt> getUnlockedBalance({int accountIndex = 0}) async {
-    final address = _getWalletPointer().address;
-    return BigInt.from(
-      await Isolate.run(() {
-        return xmr_ffi.getWalletUnlockedBalance(
-          Pointer.fromAddress(address),
+  BigInt getUnlockedBalance({int accountIndex = 0}) => BigInt.from(
+        xmr_ffi.getWalletUnlockedBalance(
+          _getWalletPointer(),
           accountIndex: accountIndex,
-        );
-      }),
-    );
-  }
+        ),
+      );
 
   // @override
   // List<Account> getAccounts({bool includeSubaddresses = false, String? tag}) {
@@ -975,11 +867,8 @@ class MoneroWallet extends Wallet {
   // }
 
   @override
-  Future<String> getTxKey(String txid) async {
-    final address = _getWalletPointer().address;
-    return await Isolate.run(() {
-      return xmr_ffi.getTxKey(Pointer.fromAddress(address), txid: txid);
-    });
+  String getTxKey(String txid) {
+    return xmr_ffi.getTxKey(_getWalletPointer(), txid: txid);
   }
 
   @override
@@ -1001,6 +890,10 @@ class MoneroWallet extends Wallet {
     required Set<String> txids,
     bool refresh = false,
   }) async {
+    if (txids.isEmpty) {
+      return [];
+    }
+
     if (refresh) {
       await refreshTransactions();
     }
@@ -1018,21 +911,17 @@ class MoneroWallet extends Wallet {
       await refreshTransactions();
     }
 
-    final size = await transactionCount();
+    final size = transactionCount();
 
-    final List<Transaction> result = [];
-    for (int i = 0; i < size; i++) {
-      result.add(
-        await _transactionFrom(
-          xmr_ffi.getTransactionInfoPointer(
-            _transactionHistoryPointer!,
-            index: i,
-          ),
+    return List.generate(
+      size,
+      (index) => _transactionFrom(
+        xmr_ffi.getTransactionInfoPointer(
+          _transactionHistoryPointer!,
+          index: index,
         ),
-      );
-    }
-
-    return result;
+      ),
+    );
   }
 
   @override
@@ -1041,22 +930,17 @@ class MoneroWallet extends Wallet {
       await refreshTransactions();
     }
 
-    final address = _transactionHistoryPointer!.address;
-    final size = await transactionCount();
+    final size = transactionCount();
 
-    return Isolate.run(() {
-      final ptr = Pointer.fromAddress(address);
-
-      return List.generate(
-        size,
-        (index) => xmr_ffi.getTransactionInfoHash(
-          xmr_ffi.getTransactionInfoPointer(
-            ptr.cast(),
-            index: index,
-          ),
+    return List.generate(
+      size,
+      (index) => xmr_ffi.getTransactionInfoHash(
+        xmr_ffi.getTransactionInfoPointer(
+          _transactionHistoryPointer!,
+          index: index,
         ),
-      );
-    });
+      ),
+    );
   }
 
   @override
@@ -1068,49 +952,46 @@ class MoneroWallet extends Wallet {
       if (refresh) {
         await refreshOutputs();
       }
+      final count = xmr_ffi.getCoinsCount(_coinsPointer!);
 
-      final address = _coinsPointer!.address;
+      Logging.log?.i("monero outputs found=$count");
 
-      return Isolate.run(() {
-        final List<Output> result = [];
+      final List<Output> result = [];
 
-        final ptr = Pointer.fromAddress(address);
+      for (int i = 0; i < count; i++) {
+        final coinInfoPointer = xmr_ffi.getCoinInfoPointer(_coinsPointer!, i);
 
-        final count = xmr_ffi.getCoinsCount(ptr.cast());
-        for (int i = 0; i < count; i++) {
-          final coinInfoPointer = xmr_ffi.getCoinInfoPointer(ptr.cast(), i);
+        final hash = xmr_ffi.getHashForCoinsInfo(coinInfoPointer);
 
-          final hash = xmr_ffi.getHashForCoinsInfo(coinInfoPointer);
+        if (hash.isNotEmpty) {
+          final spent = xmr_ffi.isSpentCoinsInfo(coinInfoPointer);
 
-          if (hash.isNotEmpty) {
-            final spent = xmr_ffi.isSpentCoinsInfo(coinInfoPointer);
+          if (includeSpent || !spent) {
+            final utxo = Output(
+              address: xmr_ffi.getAddressForCoinsInfo(coinInfoPointer),
+              hash: hash,
+              keyImage: xmr_ffi.getKeyImageForCoinsInfo(coinInfoPointer),
+              value:
+                  BigInt.from(xmr_ffi.getAmountForCoinsInfo(coinInfoPointer)),
+              isFrozen: xmr_ffi.isFrozenCoinsInfo(coinInfoPointer),
+              isUnlocked: xmr_ffi.isUnlockedCoinsInfo(coinInfoPointer),
+              vout: xmr_ffi.getInternalOutputIndexForCoinsInfo(coinInfoPointer),
+              spent: spent,
+              spentHeight: spent
+                  ? xmr_ffi.getSpentHeightForCoinsInfo(coinInfoPointer)
+                  : null,
+              height: xmr_ffi.getBlockHeightForCoinsInfo(coinInfoPointer),
+              coinbase: xmr_ffi.isCoinbaseCoinsInfo(coinInfoPointer),
+            );
 
-            if (includeSpent || !spent) {
-              final utxo = Output(
-                address: xmr_ffi.getAddressForCoinsInfo(coinInfoPointer),
-                hash: hash,
-                keyImage: xmr_ffi.getKeyImageForCoinsInfo(coinInfoPointer),
-                value:
-                    BigInt.from(xmr_ffi.getAmountForCoinsInfo(coinInfoPointer)),
-                isFrozen: xmr_ffi.isFrozenCoinsInfo(coinInfoPointer),
-                isUnlocked: xmr_ffi.isUnlockedCoinsInfo(coinInfoPointer),
-                vout:
-                    xmr_ffi.getInternalOutputIndexForCoinsInfo(coinInfoPointer),
-                spent: spent,
-                spentHeight: spent
-                    ? xmr_ffi.getSpentHeightForCoinsInfo(coinInfoPointer)
-                    : null,
-                height: xmr_ffi.getBlockHeightForCoinsInfo(coinInfoPointer),
-                coinbase: xmr_ffi.isCoinbaseCoinsInfo(coinInfoPointer),
-              );
-
-              result.add(utxo);
-            }
+            result.add(utxo);
           }
+        } else {
+          Logging.log?.w("Found empty hash in monero utxo?!");
         }
+      }
 
-        return result;
-      });
+      return result;
     } catch (e, s) {
       Logging.log?.w("getOutputs failed", error: e, stackTrace: s);
       rethrow;
@@ -1149,21 +1030,16 @@ class MoneroWallet extends Wallet {
       throw Exception("Attempted freeze of empty keyImage.");
     }
 
-    final address = _coinsPointer!.address;
-
-    await Isolate.run(() {
-      final ptr = Pointer.fromAddress(address);
-      final count = xmr_ffi.getAllCoinsSize(ptr.cast());
-      for (int i = 0; i < count; i++) {
-        if (keyImage ==
-            xmr_ffi.getKeyImageForCoinsInfo(
-              xmr_ffi.getCoinInfoPointer(ptr.cast(), i),
-            )) {
-          xmr_ffi.freezeCoin(ptr.cast(), index: i);
-          return;
-        }
+    final count = xmr_ffi.getAllCoinsSize(_coinsPointer!);
+    for (int i = 0; i < count; i++) {
+      if (keyImage ==
+          xmr_ffi.getKeyImageForCoinsInfo(
+            xmr_ffi.getCoinInfoPointer(_coinsPointer!, i),
+          )) {
+        xmr_ffi.freezeCoin(_coinsPointer!, index: i);
+        return;
       }
-    });
+    }
 
     throw Exception(
       "Can't freeze utxo for the gen keyImage if it cannot be found. *points at temple*",
@@ -1176,21 +1052,16 @@ class MoneroWallet extends Wallet {
       throw Exception("Attempted thaw of empty keyImage.");
     }
 
-    final address = _coinsPointer!.address;
-
-    await Isolate.run(() {
-      final ptr = Pointer.fromAddress(address);
-      final count = xmr_ffi.getAllCoinsSize(ptr.cast());
-      for (int i = 0; i < count; i++) {
-        if (keyImage ==
-            xmr_ffi.getKeyImageForCoinsInfo(
-              xmr_ffi.getCoinInfoPointer(ptr.cast(), i),
-            )) {
-          xmr_ffi.thawCoin(ptr.cast(), index: i);
-          return;
-        }
+    final count = xmr_ffi.getAllCoinsSize(_coinsPointer!);
+    for (int i = 0; i < count; i++) {
+      if (keyImage ==
+          xmr_ffi.getKeyImageForCoinsInfo(
+            xmr_ffi.getCoinInfoPointer(_coinsPointer!, i),
+          )) {
+        xmr_ffi.thawCoin(_coinsPointer!, index: i);
+        return;
       }
-    });
+    }
 
     throw Exception(
       "Can't thaw utxo for the gen keyImage if it cannot be found. *points at temple*",
@@ -1371,7 +1242,7 @@ class MoneroWallet extends Wallet {
   // }
 
   @override
-  Future<BigInt?> amountFromString(String value) async {
+  BigInt? amountFromString(String value) {
     try {
       // not sure what protections or validation is done internally
       // so lets do some extra for now
@@ -1379,9 +1250,7 @@ class MoneroWallet extends Wallet {
 
       // if that parse succeeded the following should produce a valid result
 
-      return BigInt.from(
-        await Isolate.run(() => xmr_ffi.amountFromString(value)),
-      );
+      return BigInt.from(xmr_ffi.amountFromString(value));
     } catch (e, s) {
       Logging.log?.w(
         "amountFromString failed to parse \"$value\"",
@@ -1393,22 +1262,13 @@ class MoneroWallet extends Wallet {
   }
 
   @override
-  Future<String> getPassword() async {
-    final address = _getWalletPointer().address;
-    return await Isolate.run(() {
-      return xmr_ffi.getWalletPassword(Pointer.fromAddress(address));
-    });
+  String getPassword() {
+    return xmr_ffi.getWalletPassword(_getWalletPointer());
   }
 
   @override
-  Future<void> changePassword(String newPassword) async {
-    final address = _getWalletPointer().address;
-    await Isolate.run(() {
-      return xmr_ffi.setWalletPassword(
-        Pointer.fromAddress(address),
-        password: newPassword,
-      );
-    });
+  void changePassword(String newPassword) {
+    xmr_ffi.setWalletPassword(_getWalletPointer(), password: newPassword);
   }
 
   @override
@@ -1425,7 +1285,7 @@ class MoneroWallet extends Wallet {
   Future<void> close({bool save = false}) async {
     if (isClosed() || isClosing) return;
     isClosing = true;
-    await stopSyncing();
+    stopSyncing();
     stopListeners();
 
     if (save) {
