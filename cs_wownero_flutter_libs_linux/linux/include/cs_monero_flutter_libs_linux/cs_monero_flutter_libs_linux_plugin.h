@@ -11,10 +11,10 @@ G_BEGIN_DECLS
 #define FLUTTER_PLUGIN_EXPORT
 #endif
 
-typedef struct _CsMoneroFlutterLibsLinuxPlugin CsMoneroFlutterLibsLinuxPlugin;
+typedef struct _CsWowneroFlutterLibsLinuxPlugin CsWowneroFlutterLibsLinuxPlugin;
 typedef struct {
   GObjectClass parent_class;
-} CsMoneroFlutterLibsLinuxPluginClass;
+} CsWowneroFlutterLibsLinuxPluginClass;
 
 FLUTTER_PLUGIN_EXPORT GType cs_wownero_flutter_libs_linux_plugin_get_type();
 

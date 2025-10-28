@@ -7,7 +7,7 @@ import '../util.dart';
 
 void main(List<String> args) async {
   const platforms = ["android", "ios", "macos", "linux", "windows"];
-  const coins = ["monero", "wownero"];
+  const coins = ["wownero"];
 
   if (args.length != 1) {
     throw ArgumentError(
@@ -100,33 +100,19 @@ void main(List<String> args) async {
       // ios and macos only have 1 triple currently
       final triple = _getTriples(platform).first;
 
-      final String xmrDylib;
       final String wowDylib;
       if (platform == "ios") {
-        xmrDylib = "$envMoneroCDir"
-            "${Platform.pathSeparator}release"
-            "${Platform.pathSeparator}monero"
-            "${Platform.pathSeparator}${triple}_libwallet2_api_c.dylib";
         wowDylib = "$envMoneroCDir"
             "${Platform.pathSeparator}release"
             "${Platform.pathSeparator}wownero"
             "${Platform.pathSeparator}${triple}_libwallet2_api_c.dylib";
       } else {
-        xmrDylib = "$envMoneroCDir"
-            "${Platform.pathSeparator}release"
-            "${Platform.pathSeparator}monero"
-            "${Platform.pathSeparator}${triple}_libwallet2_api_c.dylib";
         wowDylib = "$envMoneroCDir"
             "${Platform.pathSeparator}release"
             "${Platform.pathSeparator}wownero"
             "${Platform.pathSeparator}${triple}_libwallet2_api_c.dylib";
       }
 
-      await createFramework(
-        frameworkName: "MoneroWallet",
-        pathToDylib: xmrDylib,
-        targetDirFrameworks: dir.path,
-      );
       await createFramework(
         frameworkName: "WowneroWallet",
         pathToDylib: wowDylib,
@@ -160,17 +146,6 @@ void main(List<String> args) async {
         ..createSync(
           recursive: true,
         );
-      await runAsync(
-        "cp",
-        [
-          "$envMoneroCDir"
-              "${Platform.pathSeparator}release"
-              "${Platform.pathSeparator}monero"
-              "${Platform.pathSeparator}x86_64-w64-mingw32_libwallet2_api_c.dll",
-          "${dir.path}"
-              "${Platform.pathSeparator}monero_libwallet2_api_c.dll",
-        ],
-      );
       await runAsync(
         "cp",
         [

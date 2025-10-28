@@ -17,11 +17,10 @@ class _CreateWalletViewState extends State<CreateWalletView> {
   final nameController = TextEditingController();
   final pwController = TextEditingController();
 
-  String _type = "monero";
+  String _type = "wownero";
   bool _locked = false;
 
   WowneroSeedType? _selectedWowType;
-  MoneroSeedType? _selectedXmrType;
 
   Future<Wallet> createWallet(String type, String name, String password) async {
     final existing = await loadWalletNames(type);
@@ -36,34 +35,12 @@ class _CreateWalletViewState extends State<CreateWalletView> {
     );
 
     try {
-      final Wallet wallet;
-      switch (type) {
-        case "monero":
-          if (_selectedXmrType == null) {
-            throw Exception("Select seed length!");
-          }
-          wallet = await MoneroWallet.create(
-            path: path,
-            password: password,
-            seedType: _selectedXmrType!,
-          );
-          break;
-
-        case "wownero":
-          if (_selectedWowType == null) {
-            throw Exception("Select seed length!");
-          }
-          wallet = await WowneroWallet.create(
-            path: path,
-            password: password,
-            seedType: _selectedWowType!,
-            overrideDeprecated14WordSeedException: true,
-          );
-          break;
-
-        default:
-          throw Exception("Unknown wallet type: $type");
-      }
+      final wallet = await WowneroWallet.create(
+        path: path,
+        password: password,
+        seedType: _selectedWowType!,
+        overrideDeprecated14WordSeedException: true,
+      );
 
       return wallet;
     } catch (e) {
@@ -148,36 +125,21 @@ class _CreateWalletViewState extends State<CreateWalletView> {
                     child: DropdownButton(
                       hint: const Text("Select seed length"),
                       isExpanded: true,
-                      value: _type == "wownero"
-                          ? _selectedWowType
-                          : _selectedXmrType,
+                      value: _selectedWowType,
                       items: [
-                        if (_type == "wownero")
-                          ...WowneroSeedType.values.map(
-                            (e) => DropdownMenuItem(
-                              value: e,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(e.name),
-                              ),
+                        ...WowneroSeedType.values.map(
+                          (e) => DropdownMenuItem(
+                            value: e,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(e.name),
                             ),
                           ),
-                        if (_type == "monero")
-                          ...MoneroSeedType.values.map(
-                            (e) => DropdownMenuItem(
-                              value: e,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(e.name),
-                              ),
-                            ),
-                          ),
+                        ),
                       ],
                       onChanged: (value) {
                         setState(() {
-                          if (value is MoneroSeedType) {
-                            _selectedXmrType = value;
-                          } else if (value is WowneroSeedType) {
+                          if (value is WowneroSeedType) {
                             _selectedWowType = value;
                           }
                         });

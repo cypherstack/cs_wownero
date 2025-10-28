@@ -22,51 +22,31 @@ class _CreateViewOnlyWalletViewState extends State<CreateViewOnlyWalletView> {
   final heightController = TextEditingController();
   final addressController = TextEditingController();
 
-  String _type = "monero";
   bool _locked = false;
 
   Future<Wallet> viewOnlyWallet(
-    String type,
     String name,
     String password,
   ) async {
-    final existing = await loadWalletNames(type);
+    final existing = await loadWalletNames("wownero");
     if (existing.contains(name)) {
       throw Exception("Wallet with name: \"$name\" already exists");
     }
 
     final path = await pathForWallet(
       name: name,
-      type: type,
+      type: "wownero",
       createIfNotExists: true,
     );
 
     try {
-      final Wallet wallet;
-      switch (type) {
-        case "monero":
-          wallet = await MoneroWallet.createViewOnlyWallet(
-            path: path,
-            password: password,
-            viewKey: viewKeyController.text,
-            restoreHeight: int.tryParse(heightController.text) ?? 0,
-            address: addressController.text,
-          );
-          break;
-
-        case "wownero":
-          wallet = await WowneroWallet.createViewOnlyWallet(
-            path: path,
-            password: password,
-            viewKey: viewKeyController.text,
-            restoreHeight: int.tryParse(heightController.text) ?? 0,
-            address: addressController.text,
-          );
-          break;
-
-        default:
-          throw Exception("Unknown wallet type: $type");
-      }
+      final wallet = await WowneroWallet.createViewOnlyWallet(
+        path: path,
+        password: password,
+        viewKey: viewKeyController.text,
+        restoreHeight: int.tryParse(heightController.text) ?? 0,
+        address: addressController.text,
+      );
 
       unawaited(wallet.rescanBlockchain());
 
@@ -75,7 +55,7 @@ class _CreateViewOnlyWalletViewState extends State<CreateViewOnlyWalletView> {
       // delete dir on failure
       final dir = await pathForWalletDir(
         name: nameController.text,
-        type: _type,
+        type: "wownero",
         createIfNotExists: true,
       );
       Directory(dir).deleteSync(recursive: true);
@@ -91,7 +71,6 @@ class _CreateViewOnlyWalletViewState extends State<CreateViewOnlyWalletView> {
 
     try {
       final _ = await viewOnlyWallet(
-        _type,
         nameController.text,
         pwController.text,
       );
@@ -145,11 +124,7 @@ class _CreateViewOnlyWalletViewState extends State<CreateViewOnlyWalletView> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: CoinSelectorWidget(
-          onChanged: (value) {
-            setState(() {
-              _type = value;
-            });
-          },
+          onChanged: (value) {},
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [

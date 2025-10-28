@@ -8,7 +8,7 @@
 </p>
 
 # About
-- A simplified Flutter/Dart Monero (and Wownero) wallet library.
+- A simplified Flutter/Dart Wownero wallet library.
 - Uses https://github.com/MrCyjaneK/monero_c/ for the compiled native libs.
 - If you do not trust the binaries hosted on https://pub.dev you can build from
   source. Refer to [`cs_wownero/README.md`](https://github.com/cypherstack/cs_wownero/tree/main/cs_wownero/README.md).
@@ -22,11 +22,11 @@
     ```
 2. Create a wallet
    ```dart
-   final wallet = await MoneroWallet.create(
+   final wallet = await WowneroWallet.create(
      path: "somePath", // Path to wallet files will be saved,
      password: "SomeSecurePassword", // Your wallet files are only as secure as this password.  This cannot be recovered if lost!
      language: "English", // Seed language.
-     seedType: MoneroSeedType.sixteen, // 16 word polyseed or MoneroSeedType.twentyFive for legacy seed format.
+     seedType: WowneroSeedType.sixteen, // 16 word polyseed or WowneroSeedType.twentyFive for legacy seed format.
      networkType: 0, // Mainnet.
    );
 

@@ -9,6 +9,6 @@
 #include <cs_wownero_flutter_libs_windows/cs_wownero_flutter_libs_windows_plugin_c_api.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
-  CsMoneroFlutterLibsWindowsPluginCApiRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("CsMoneroFlutterLibsWindowsPluginCApi"));
+  CsWowneroFlutterLibsWindowsPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("CsWowneroFlutterLibsWindowsPluginCApi"));
 }

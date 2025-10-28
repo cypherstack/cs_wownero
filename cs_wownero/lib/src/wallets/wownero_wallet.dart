@@ -62,7 +62,7 @@ class WowneroWallet extends Wallet {
       timeStamp: DateTime.fromMillisecondsSinceEpoch(
         wow_ffi.getTransactionInfoTimestamp(infoPointer) * 1000,
       ),
-      minConfirms: MinConfirms.monero,
+      minConfirms: MinConfirms.wownero,
     );
   }
 
@@ -1043,7 +1043,7 @@ class WowneroWallet extends Wallet {
             result.add(utxo);
           }
         } else {
-          Logging.log?.w("Found empty hash in monero utxo?!");
+          Logging.log?.w("Found empty hash in wownero utxo?!");
         }
       }
 

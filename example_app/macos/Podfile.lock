@@ -20,7 +20,7 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin
 
 SPEC CHECKSUMS:
-  cs_wownero_flutter_libs_macos: b901f94d39d1338f706312b026aba928d23582d4
+  cs_wownero_flutter_libs_macos: 0802993985ac56b47e9e75765e82455479f6ffaa
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
 

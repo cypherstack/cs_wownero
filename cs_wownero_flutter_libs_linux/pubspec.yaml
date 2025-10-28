@@ -25,5 +25,5 @@ flutter:
     implements: cs_wownero_flutter_libs
     platforms:
       linux:
-        pluginClass: CsMoneroFlutterLibsLinuxPlugin
-        dartPluginClass: CsMoneroFlutterLibsLinux
+        pluginClass: CsWowneroFlutterLibsLinuxPlugin
+        dartPluginClass: CsWowneroFlutterLibsLinux

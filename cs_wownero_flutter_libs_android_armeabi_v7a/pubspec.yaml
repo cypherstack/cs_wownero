@@ -25,5 +25,5 @@ flutter:
     platforms:
       android:
         package: com.cypherstack.cs_wownero_flutter_libs_android_armeabi_v7a
-        pluginClass: CsMoneroFlutterLibsAndroidArmeabiV7aPlugin
+        pluginClass: CsWowneroFlutterLibsAndroidArmeabiV7aPlugin
                                       

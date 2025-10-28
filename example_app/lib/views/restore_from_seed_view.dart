@@ -20,7 +20,7 @@ class _RestoreFromSeedViewState extends State<RestoreFromSeedView> {
   final seedController = TextEditingController();
   final heightController = TextEditingController();
 
-  String _type = "monero";
+  String _type = "wownero";
   bool _locked = false;
 
   Future<Wallet> restoreWallet(
@@ -40,31 +40,12 @@ class _RestoreFromSeedViewState extends State<RestoreFromSeedView> {
     );
 
     try {
-      final Wallet wallet;
-      switch (type) {
-        case "monero":
-          wallet = await MoneroWallet.restoreWalletFromSeed(
-            path: path,
-            password: password,
-            seed: seedController.text,
-            restoreHeight: int.tryParse(heightController.text) ?? 0,
-          );
-          break;
-
-        case "wownero":
-          wallet = await WowneroWallet.restoreWalletFromSeed(
-            path: path,
-            password: password,
-            seed: seedController.text,
-            restoreHeight: int.tryParse(heightController.text) ?? 0,
-          );
-          break;
-
-        default:
-          throw Exception("Unknown wallet type: $type");
-      }
-
-      unawaited(wallet.rescanBlockchain());
+      final wallet = await WowneroWallet.restoreWalletFromSeed(
+        path: path,
+        password: password,
+        seed: seedController.text,
+        restoreHeight: int.tryParse(heightController.text) ?? 0,
+      );
 
       return wallet;
     } catch (e) {

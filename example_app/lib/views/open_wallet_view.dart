@@ -105,28 +105,12 @@ class _OpenWalletDialogState extends State<OpenWalletDialog> {
       type: type,
       createIfNotExists: false,
     );
-    final Wallet wallet;
-    final String daemonAddress;
-    switch (type) {
-      case "monero":
-        daemonAddress = "monero.stackwallet.com:18081";
-        wallet = await MoneroWallet.loadWallet(
-          path: path,
-          password: pw,
-        );
-        break;
+    final daemonAddress = "wownero.stackwallet.com:34568";
+    final wallet = await WowneroWallet.loadWallet(
+      path: path,
+      password: pw,
+    );
 
-      case "wownero":
-        daemonAddress = "wownero.stackwallet.com:34568";
-        wallet = await WowneroWallet.loadWallet(
-          path: path,
-          password: pw,
-        );
-        break;
-
-      default:
-        throw Exception("Unknown wallet type: $type");
-    }
     await wallet.connect(
       daemonAddress: daemonAddress,
       trusted: true,

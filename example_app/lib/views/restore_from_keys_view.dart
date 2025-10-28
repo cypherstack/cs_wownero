@@ -43,35 +43,15 @@ class _RestoreFromKeysViewState extends State<RestoreFromKeysView> {
     );
 
     try {
-      final Wallet wallet;
-      switch (type) {
-        case "monero":
-          wallet = await MoneroWallet.restoreWalletFromKeys(
-            path: path,
-            password: password,
-            viewKey: viewKeyController.text,
-            spendKey: spendKeyController.text,
-            restoreHeight: int.tryParse(heightController.text) ?? 0,
-            address: addressController.text,
-            language: languageController.text,
-          );
-          break;
-
-        case "wownero":
-          wallet = await WowneroWallet.restoreWalletFromKeys(
-            path: path,
-            password: password,
-            viewKey: viewKeyController.text,
-            spendKey: spendKeyController.text,
-            restoreHeight: int.tryParse(heightController.text) ?? 0,
-            address: addressController.text,
-            language: languageController.text,
-          );
-          break;
-
-        default:
-          throw Exception("Unknown wallet type: $type");
-      }
+      final wallet = await WowneroWallet.restoreWalletFromKeys(
+        path: path,
+        password: password,
+        viewKey: viewKeyController.text,
+        spendKey: spendKeyController.text,
+        restoreHeight: int.tryParse(heightController.text) ?? 0,
+        address: addressController.text,
+        language: languageController.text,
+      );
 
       unawaited(wallet.rescanBlockchain());
 

@@ -43,31 +43,13 @@ class _RestoreDeterministicFromSpendKeyViewState
     );
 
     try {
-      final Wallet wallet;
-      switch (type) {
-        case "monero":
-          wallet = await MoneroWallet.restoreDeterministicWalletFromSpendKey(
-            path: path,
-            password: password,
-            spendKey: spendKeyController.text,
-            restoreHeight: int.tryParse(heightController.text) ?? 0,
-            language: languageController.text,
-          );
-          break;
-
-        case "wownero":
-          wallet = await WowneroWallet.restoreDeterministicWalletFromSpendKey(
-            path: path,
-            password: password,
-            spendKey: spendKeyController.text,
-            restoreHeight: int.tryParse(heightController.text) ?? 0,
-            language: languageController.text,
-          );
-          break;
-
-        default:
-          throw Exception("Unknown wallet type: $type");
-      }
+      final wallet = await WowneroWallet.restoreDeterministicWalletFromSpendKey(
+        path: path,
+        password: password,
+        spendKey: spendKeyController.text,
+        restoreHeight: int.tryParse(heightController.text) ?? 0,
+        language: languageController.text,
+      );
 
       unawaited(wallet.rescanBlockchain());
 

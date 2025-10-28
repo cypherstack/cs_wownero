@@ -1,10 +1,10 @@
 import Flutter
 import UIKit
 
-public class CsMoneroFlutterLibsIosPlugin: NSObject, FlutterPlugin {
+public class CsWowneroFlutterLibsIosPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "cs_wownero_flutter_libs_ios", binaryMessenger: registrar.messenger())
-    let instance = CsMoneroFlutterLibsIosPlugin()
+    let instance = CsWowneroFlutterLibsIosPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
 

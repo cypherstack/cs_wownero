@@ -4,33 +4,33 @@ import 'package:cs_wownero_flutter_libs_android_x86_64/cs_wownero_flutter_libs_a
 import 'package:flutter_test/flutter_test.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-class MockCsMoneroFlutterLibsAndroidX8664Platform
+class MockCsWowneroFlutterLibsAndroidX8664Platform
     with MockPlatformInterfaceMixin
-    implements CsMoneroFlutterLibsAndroidX8664Platform {
+    implements CsWowneroFlutterLibsAndroidX8664Platform {
   @override
   Future<String?> getPlatformVersion() => Future.value('42');
 }
 
 void main() {
-  final CsMoneroFlutterLibsAndroidX8664Platform initialPlatform =
-      CsMoneroFlutterLibsAndroidX8664Platform.instance;
+  final CsWowneroFlutterLibsAndroidX8664Platform initialPlatform =
+      CsWowneroFlutterLibsAndroidX8664Platform.instance;
 
-  test('$MethodChannelCsMoneroFlutterLibsAndroidX8664 is the default instance',
+  test('$MethodChannelCsWowneroFlutterLibsAndroidX8664 is the default instance',
       () {
     expect(
       initialPlatform,
-      isInstanceOf<MethodChannelCsMoneroFlutterLibsAndroidX8664>(),
+      isInstanceOf<MethodChannelCsWowneroFlutterLibsAndroidX8664>(),
     );
   });
 
   test('getPlatformVersion', () async {
-    final csMoneroFlutterLibsAndroidX8664Plugin =
-        CsMoneroFlutterLibsAndroidX8664();
-    final fakePlatform = MockCsMoneroFlutterLibsAndroidX8664Platform();
-    CsMoneroFlutterLibsAndroidX8664Platform.instance = fakePlatform;
+    final CsWowneroFlutterLibsAndroidX8664Plugin =
+        CsWowneroFlutterLibsAndroidX8664();
+    final fakePlatform = MockCsWowneroFlutterLibsAndroidX8664Platform();
+    CsWowneroFlutterLibsAndroidX8664Platform.instance = fakePlatform;
 
     expect(
-      await csMoneroFlutterLibsAndroidX8664Plugin.getPlatformVersion(),
+      await CsWowneroFlutterLibsAndroidX8664Plugin.getPlatformVersion(),
       '42',
     );
   });

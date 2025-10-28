@@ -4,9 +4,9 @@ class CoinSelectorWidget extends StatefulWidget {
   const CoinSelectorWidget({
     super.key,
     this.onChanged,
-    this.initialValue = "monero",
+    this.initialValue = "wownero",
     this.child,
-  }) : assert(initialValue == "monero" || initialValue == "wownero");
+  }) : assert(initialValue == "wownero");
 
   final void Function(String)? onChanged;
   final String initialValue;
@@ -32,10 +32,6 @@ class _CoinSelectorWidgetState extends State<CoinSelectorWidget> {
       children: [
         SegmentedButton<String>(
           segments: const <ButtonSegment<String>>[
-            ButtonSegment<String>(
-              value: "monero",
-              label: Text("Monero"),
-            ),
             ButtonSegment<String>(
               value: "wownero",
               label: Text("Wownero"),

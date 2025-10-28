@@ -28,5 +28,5 @@ flutter:
     platforms:
       android:
         package: com.cypherstack.cs_wownero_flutter_libs_android
-        pluginClass: CsMoneroFlutterLibsAndroidPlugin
-        dartPluginClass: CsMoneroFlutterLibsAndroid
+        pluginClass: CsWowneroFlutterLibsAndroidPlugin
+        dartPluginClass: CsWowneroFlutterLibsAndroid

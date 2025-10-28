@@ -1,18 +1,18 @@
-/// Represents a Monero transaction output.
+/// Represents a Wownero transaction output.
 ///
-/// In Monero (or Wownero), an output is a part of a transaction that can be
+/// In Wownero, an output is a part of a transaction that can be
 /// used as input in subsequent transactions. This class encapsulates
 /// information about the specific output, including its address, hash, value,
 /// and more.
 class Output {
-  /// Creates an [Output] with the specified Monero transaction details. NOTE:
+  /// Creates an [Output] with the specified Wownero transaction details. NOTE:
   /// No validation of any properties (besides a negative [value] or [vout],
   /// and a non empty [keyImage]) occurs here.
   ///
-  /// [address] is the receiving Monero address.
+  /// [address] is the receiving Wownero address.
   /// [hash] is the transaction hash of the output.
   /// [keyImage] is the unique identifier of the output.
-  /// [value] represents the amount of Monero in atomic units.
+  /// [value] represents the amount of Wownero in atomic units.
   /// [isFrozen] indicates if the output is currently frozen.
   /// [isUnlocked] shows if the output is available for spending.
   /// [height] is the blockchain height at which the output was created.
@@ -35,7 +35,7 @@ class Output {
     required this.coinbase,
   }) : assert(!value.isNegative && !vout.isNegative && keyImage.isNotEmpty);
 
-  /// The receiving Monero address.
+  /// The receiving Wownero address.
   final String address;
 
   /// The hash of the transaction in which this output was created.
