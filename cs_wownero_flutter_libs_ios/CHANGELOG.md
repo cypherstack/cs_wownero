@@ -1,3 +1,7 @@
+## 1.2.0
+
+ - **FEAT**(pure wownero): trip monero related stuff. ([cd517a67](https://github.com/cypherstack/cs_wownero/commit/cd517a6781a462c232770479326f7463738b300d))
+
 ## 1.1.2
 
  - **FIX**: missing version bump. ([b9ff8a37](https://github.com/cypherstack/cs_wownero/commit/b9ff8a3754650ff82f207d82d7a425ddf969c667))

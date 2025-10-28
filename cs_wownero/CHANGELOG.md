@@ -1,3 +1,9 @@
+## 2.0.0
+
+ - "Pure wownero package"
+
+ - **FEAT**(pure wownero): trip monero related stuff. ([cd517a67](https://github.com/cypherstack/cs_wownero/commit/cd517a6781a462c232770479326f7463738b300d))
+
 ## 1.2.0
 
  - **FIX**: revert async. ([5e905925](https://github.com/cypherstack/cs_wownero/commit/5e905925d799932e3097fc766b996455c5497908))

@@ -15,6 +15,81 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`cs_wownero` - `v2.0.0`](#cs_wownero---v200)
+ - [`cs_wownero_flutter_libs` - `v2.0.0`](#cs_wownero_flutter_libs---v200)
+ - [`cs_wownero_flutter_libs_android` - `v1.2.0`](#cs_wownero_flutter_libs_android---v120)
+ - [`cs_wownero_flutter_libs_android_arm64_v8a` - `v1.2.0`](#cs_wownero_flutter_libs_android_arm64_v8a---v120)
+ - [`cs_wownero_flutter_libs_android_armeabi_v7a` - `v1.2.0`](#cs_wownero_flutter_libs_android_armeabi_v7a---v120)
+ - [`cs_wownero_flutter_libs_android_x86_64` - `v1.2.0`](#cs_wownero_flutter_libs_android_x86_64---v120)
+ - [`cs_wownero_flutter_libs_ios` - `v1.2.0`](#cs_wownero_flutter_libs_ios---v120)
+ - [`cs_wownero_flutter_libs_linux` - `v1.2.0`](#cs_wownero_flutter_libs_linux---v120)
+ - [`cs_wownero_flutter_libs_macos` - `v1.2.0`](#cs_wownero_flutter_libs_macos---v120)
+ - [`cs_wownero_flutter_libs_platform_interface` - `v1.1.0`](#cs_wownero_flutter_libs_platform_interface---v110)
+ - [`cs_wownero_flutter_libs_windows` - `v1.2.0`](#cs_wownero_flutter_libs_windows---v120)
+
+---
+
+#### `cs_wownero` - `v2.0.0`
+
+ - "Pure wownero package"
+
+ - **FEAT**(pure wownero): trip monero related stuff. ([cd517a67](https://github.com/cypherstack/cs_wownero/commit/cd517a6781a462c232770479326f7463738b300d))
+
+#### `cs_wownero_flutter_libs` - `v2.0.0`
+
+ - Strip monero prebuilt binaries
+
+ - **FEAT**(pure wownero): trip monero related stuff. ([cd517a67](https://github.com/cypherstack/cs_wownero/commit/cd517a6781a462c232770479326f7463738b300d))
+
+#### `cs_wownero_flutter_libs_android` - `v1.2.0`
+
+ - **FEAT**(pure wownero): trip monero related stuff. ([cd517a67](https://github.com/cypherstack/cs_wownero/commit/cd517a6781a462c232770479326f7463738b300d))
+
+#### `cs_wownero_flutter_libs_android_arm64_v8a` - `v1.2.0`
+
+ - **FEAT**(pure wownero): trip monero related stuff. ([cd517a67](https://github.com/cypherstack/cs_wownero/commit/cd517a6781a462c232770479326f7463738b300d))
+
+#### `cs_wownero_flutter_libs_android_armeabi_v7a` - `v1.2.0`
+
+ - **FEAT**(pure wownero): trip monero related stuff. ([cd517a67](https://github.com/cypherstack/cs_wownero/commit/cd517a6781a462c232770479326f7463738b300d))
+
+#### `cs_wownero_flutter_libs_android_x86_64` - `v1.2.0`
+
+ - **FEAT**(pure wownero): trip monero related stuff. ([cd517a67](https://github.com/cypherstack/cs_wownero/commit/cd517a6781a462c232770479326f7463738b300d))
+
+#### `cs_wownero_flutter_libs_ios` - `v1.2.0`
+
+ - **FEAT**(pure wownero): trip monero related stuff. ([cd517a67](https://github.com/cypherstack/cs_wownero/commit/cd517a6781a462c232770479326f7463738b300d))
+
+#### `cs_wownero_flutter_libs_linux` - `v1.2.0`
+
+ - **FEAT**(pure wownero): trip monero related stuff. ([cd517a67](https://github.com/cypherstack/cs_wownero/commit/cd517a6781a462c232770479326f7463738b300d))
+
+#### `cs_wownero_flutter_libs_macos` - `v1.2.0`
+
+ - **FEAT**(pure wownero): trip monero related stuff. ([cd517a67](https://github.com/cypherstack/cs_wownero/commit/cd517a6781a462c232770479326f7463738b300d))
+
+#### `cs_wownero_flutter_libs_platform_interface` - `v1.1.0`
+
+ - **FEAT**(pure wownero): trip monero related stuff. ([cd517a67](https://github.com/cypherstack/cs_wownero/commit/cd517a6781a462c232770479326f7463738b300d))
+
+#### `cs_wownero_flutter_libs_windows` - `v1.2.0`
+
+ - **FEAT**(pure wownero): trip monero related stuff. ([cd517a67](https://github.com/cypherstack/cs_wownero/commit/cd517a6781a462c232770479326f7463738b300d))
+
+
+## 2025-10-28
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`cs_wownero` - `v1.2.0`](#cs_wownero---v120)
  - [`cs_wownero_flutter_libs_ios` - `v1.1.2`](#cs_wownero_flutter_libs_ios---v112)
  - [`cs_wownero_flutter_libs_macos` - `v1.1.1`](#cs_wownero_flutter_libs_macos---v111)
