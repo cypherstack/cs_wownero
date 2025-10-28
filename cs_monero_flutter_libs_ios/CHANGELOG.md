@@ -1,3 +1,7 @@
+## 1.1.2
+
+ - **FIX**: missing version bump. ([b9ff8a37](https://github.com/cypherstack/cs_monero/commit/b9ff8a3754650ff82f207d82d7a425ddf969c667))
+
 ## 1.1.1
 
  - **FIX**: missing version bump. ([b9ff8a37](https://github.com/cypherstack/cs_monero/commit/b9ff8a3754650ff82f207d82d7a425ddf969c667))

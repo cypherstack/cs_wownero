@@ -3,6 +3,46 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-10-28
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`cs_monero` - `v1.2.0`](#cs_monero---v120)
+ - [`cs_monero_flutter_libs_ios` - `v1.1.2`](#cs_monero_flutter_libs_ios---v112)
+ - [`cs_monero_flutter_libs_macos` - `v1.1.1`](#cs_monero_flutter_libs_macos---v111)
+ - [`cs_monero_flutter_libs` - `v1.1.2`](#cs_monero_flutter_libs---v112)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `cs_monero_flutter_libs` - `v1.1.2`
+
+---
+
+#### `cs_monero` - `v1.2.0`
+
+ - **FIX**: revert async. ([5e905925](https://github.com/cypherstack/cs_monero/commit/5e905925d799932e3097fc766b996455c5497908))
+ - **FEAT**: more async. ([74e76a8f](https://github.com/cypherstack/cs_monero/commit/74e76a8f6fc9dd7b97712c086aab031c527c8625))
+ - **FEAT**: convert API to async. ([6a710762](https://github.com/cypherstack/cs_monero/commit/6a710762a6d2b5e7c72297a59b21a4cc20e48bbf))
+
+#### `cs_monero_flutter_libs_ios` - `v1.1.2`
+
+ - **FIX**: missing version bump. ([b9ff8a37](https://github.com/cypherstack/cs_monero/commit/b9ff8a3754650ff82f207d82d7a425ddf969c667))
+
+#### `cs_monero_flutter_libs_macos` - `v1.1.1`
+
+ - **FIX**(macos): framework structure. ([6219ab85](https://github.com/cypherstack/cs_monero/commit/6219ab8579b121f42c30aaf3604778f71bf74328))
+
+
 ## 2025-10-10
 
 ### Changes

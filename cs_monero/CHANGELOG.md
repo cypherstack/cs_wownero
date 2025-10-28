@@ -1,3 +1,9 @@
+## 1.2.0
+
+ - **FIX**: revert async. ([5e905925](https://github.com/cypherstack/cs_monero/commit/5e905925d799932e3097fc766b996455c5497908))
+ - **FEAT**: more async. ([74e76a8f](https://github.com/cypherstack/cs_monero/commit/74e76a8f6fc9dd7b97712c086aab031c527c8625))
+ - **FEAT**: convert API to async. ([6a710762](https://github.com/cypherstack/cs_monero/commit/6a710762a6d2b5e7c72297a59b21a4cc20e48bbf))
+
 ## 1.1.1
 
  - **FIX**: revert async. ([5e905925](https://github.com/cypherstack/cs_monero/commit/5e905925d799932e3097fc766b996455c5497908))
