@@ -15,6 +15,34 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`cs_wownero_flutter_libs_ios` - `v1.2.1`](#cs_wownero_flutter_libs_ios---v121)
+ - [`cs_wownero_flutter_libs` - `v2.0.1`](#cs_wownero_flutter_libs---v201)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `cs_wownero_flutter_libs` - `v2.0.1`
+
+---
+
+#### `cs_wownero_flutter_libs_ios` - `v1.2.1`
+
+ - **FIX**(ios): fix ios podspec file name. ([c18f2399](https://github.com/cypherstack/cs_wownero/commit/c18f239994fa2cfc6862770e7f322caf6813e02a))
+
+
+## 2025-10-28
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`cs_wownero` - `v2.0.0`](#cs_wownero---v200)
  - [`cs_wownero_flutter_libs` - `v2.0.0`](#cs_wownero_flutter_libs---v200)
  - [`cs_wownero_flutter_libs_android` - `v1.2.0`](#cs_wownero_flutter_libs_android---v120)

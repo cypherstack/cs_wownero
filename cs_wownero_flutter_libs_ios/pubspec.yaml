@@ -1,6 +1,6 @@
 name: cs_wownero_flutter_libs_ios
 description: Ios implementation of cs_wownero_flutter_libs
-version: 1.2.0
+version: 1.2.1
 repository: https://github.com/cypherstack/cs_wownero
 homepage: https://github.com/cypherstack/cs_wownero
 issue_tracker: https://github.com/cypherstack/cs_wownero/issues

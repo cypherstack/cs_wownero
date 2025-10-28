@@ -1,3 +1,7 @@
+## 1.2.1
+
+ - **FIX**(ios): fix ios podspec file name. ([c18f2399](https://github.com/cypherstack/cs_wownero/commit/c18f239994fa2cfc6862770e7f322caf6813e02a))
+
 ## 1.2.0
 
  - **FEAT**(pure wownero): trip monero related stuff. ([cd517a67](https://github.com/cypherstack/cs_wownero/commit/cd517a6781a462c232770479326f7463738b300d))
