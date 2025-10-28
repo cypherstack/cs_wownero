@@ -1,8 +1,8 @@
 import 'dart:core' as core;
 import 'dart:core';
 
-import 'package:cs_monero/cs_monero.dart';
-import 'package:cs_monero_flutter_libs/cs_monero_flutter_libs.dart';
+import 'package:cs_wownero/cs_wownero.dart';
+import 'package:cs_wownero_flutter_libs/cs_wownero_flutter_libs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -60,7 +60,7 @@ class _ExampleAppState extends State<ExampleApp> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('cs_monero example app'),
+        title: const Text('cs_wownero example app'),
         centerTitle: true,
       ),
       body: SafeArea(

@@ -1,0 +1,39 @@
+name: cs_wownero_flutter_libs
+description: "Binaries required to use cs_wownero in a Flutter project"
+version: 1.1.2
+repository: https://github.com/cypherstack/cs_wownero
+homepage: https://github.com/cypherstack/cs_wownero
+issue_tracker: https://github.com/cypherstack/cs_wownero/issues
+
+environment:
+  sdk: ">=3.5.3 <4.0.0"
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cs_wownero_flutter_libs_platform_interface: 1.0.0
+  cs_wownero_flutter_libs_android: 1.1.0
+  cs_wownero_flutter_libs_ios: 1.1.2
+  cs_wownero_flutter_libs_linux: 1.1.0
+  cs_wownero_flutter_libs_macos: 1.1.1
+  cs_wownero_flutter_libs_windows: 1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        default_package: cs_wownero_flutter_libs_android
+      ios:
+        default_package: cs_wownero_flutter_libs_ios
+      linux:
+        default_package: cs_wownero_flutter_libs_linux
+      macos:
+        default_package: cs_wownero_flutter_libs_macos
+      windows:
+        default_package: cs_wownero_flutter_libs_windows

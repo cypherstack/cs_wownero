@@ -1,8 +1,8 @@
 name: example_app
-description: "A cs_monero Flutter example app"
-repository: https://github.com/cypherstack/cs_monero
-homepage: https://github.com/cypherstack/cs_monero
-issue_tracker: https://github.com/cypherstack/cs_monero/issues
+description: "A cs_wownero Flutter example app"
+repository: https://github.com/cypherstack/cs_wownero
+homepage: https://github.com/cypherstack/cs_wownero
+issue_tracker: https://github.com/cypherstack/cs_wownero/issues
 publish_to: none
 
 version: 1.0.0+1
@@ -14,10 +14,10 @@ dependencies:
   flutter:
     sdk: flutter
   path_provider: ^2.1.4
-  cs_monero:
-    path: ../cs_monero
-  cs_monero_flutter_libs:
-    path: ../cs_monero_flutter_libs
+  cs_wownero:
+    path: ../cs_wownero
+  cs_wownero_flutter_libs:
+    path: ../cs_wownero_flutter_libs
 
 dev_dependencies:
   flutter_test:

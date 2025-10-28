@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:cs_monero/cs_monero.dart';
+import 'package:cs_wownero/cs_wownero.dart';
 import 'package:flutter/material.dart';
 
 import '../util.dart';
