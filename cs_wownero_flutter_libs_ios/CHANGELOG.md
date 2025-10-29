@@ -1,3 +1,7 @@
+## 1.3.0
+
+ - remove xmr fw
+
 ## 1.2.1
 
  - **FIX**(ios): fix ios podspec file name. ([c18f2399](https://github.com/cypherstack/cs_wownero/commit/c18f239994fa2cfc6862770e7f322caf6813e02a))
